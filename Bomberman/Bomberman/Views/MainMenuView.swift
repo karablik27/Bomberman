@@ -3,10 +3,14 @@ import SwiftUI
 struct MainMenuView: View {
     @State private var showSettings = false
     @State private var isPulsing = false
+    @State private var backgroundMap: [[Character]] = MapLoader.loadRandomMap()
     
     var body: some View {
         ZStack {
             Color.bombermanBackground
+                .ignoresSafeArea()
+            
+            MapBackgroundView(map: backgroundMap)
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
