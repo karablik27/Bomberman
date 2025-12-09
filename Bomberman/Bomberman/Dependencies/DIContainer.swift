@@ -12,9 +12,11 @@ final class DIContainer {
 
     let webSocketService: WebSocketServiceProtocol
     let eventDecoder: ServerEventDecoderProtocol
+    let gameStateStore: GameStateStore
 
     private init() {
         self.webSocketService = WebSocketService(url: AppConfig.webSocketURL)
         self.eventDecoder = ServerEventDecoder()
+        self.gameStateStore = GameStateStore(ws: webSocketService, decoder: eventDecoder)
     }
 }
