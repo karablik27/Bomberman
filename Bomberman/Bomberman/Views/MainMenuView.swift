@@ -5,6 +5,7 @@ struct MainMenuView: View {
     @State private var isPulsing = false
     @State private var showLobby = false
     @State private var backgroundMap: [[Character]] = MapLoader.loadRandomMap()
+    @StateObject private var audioService = AudioService.shared
     
     var body: some View {
         ZStack {
@@ -74,6 +75,10 @@ struct MainMenuView: View {
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
+        }
+        .onAppear {
+            audioService.playLobbyMusic()
+            isPulsing = true
         }
     }
 }
