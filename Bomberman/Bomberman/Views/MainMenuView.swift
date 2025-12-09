@@ -3,6 +3,7 @@ import SwiftUI
 struct MainMenuView: View {
     @State private var showSettings = false
     @State private var isPulsing = false
+    @State private var showLobby = false
     @State private var backgroundMap: [[Character]] = MapLoader.loadRandomMap()
     
     var body: some View {
@@ -38,7 +39,7 @@ struct MainMenuView: View {
                 Spacer()
 
                 Button(action: {
-                    print("Start game")
+                    showLobby = true
                 }) {
                     HStack(spacing: 15) {
                         Image("PlayIcon")
@@ -57,6 +58,9 @@ struct MainMenuView: View {
                         RoundedRectangle(cornerRadius: 15)
                             .fill(Color.bombermanRed)
                     )
+                }
+                .fullScreenCover(isPresented: $showLobby) {
+                    LobbyView()
                 }
                 .scaleEffect(isPulsing ? 1.05 : 1.0)
                 .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: isPulsing)
