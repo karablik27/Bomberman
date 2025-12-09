@@ -2,7 +2,7 @@
 //  LobbyView.swift
 //  Bomberman
 //
-//  Created by Верховный Маг on 10.12.2025.
+//  Created by Karabelnikov Stepan on 10.12.2025.
 //
 
 import SwiftUI
