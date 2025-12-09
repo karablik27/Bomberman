@@ -11,8 +11,10 @@ final class DIContainer {
     public static let shared = DIContainer()
 
     let webSocketService: WebSocketServiceProtocol
+    let eventDecoder: ServerEventDecoderProtocol
 
     private init() {
         self.webSocketService = WebSocketService(url: AppConfig.webSocketURL)
+        self.eventDecoder = ServerEventDecoder()
     }
 }

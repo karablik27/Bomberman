@@ -11,6 +11,6 @@ enum AppConfig {
     static let webSocketURLString = "ws://localhost:8765"
 
     static var webSocketURL: URL {
-        URL(string: webSocketURLString)!
+        URL(string: webSocketURLString)! // уберу форс анврап чуть позже
     }
 }
