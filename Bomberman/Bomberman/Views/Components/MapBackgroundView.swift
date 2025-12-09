@@ -71,7 +71,7 @@ struct MapLoader {
     }
     
     static func loadMap(named name: String) -> [[Character]] {
-        guard let url = Bundle.main.url(forResource: name, withExtension: "txt", subdirectory: "Resources/Maps"),
+        guard let url = Bundle.main.url(forResource: name, withExtension: "txt"),
               let content = try? String(contentsOf: url) else {
             return defaultMap()
         }
