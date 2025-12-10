@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
+    @State private var showSoundSettings = false
     
     var body: some View {
         NavigationView {
@@ -10,7 +11,7 @@ struct SettingsView: View {
                     .ignoresSafeArea()
                 
                 VStack(spacing: 30) {
-                    Text("SETTINGS")
+                    Text("Настройки")
                         .font(.kenneyFuture(size: 40))
                         .foregroundColor(.white)
                         .padding(.top, 40)
@@ -18,9 +19,13 @@ struct SettingsView: View {
                     Spacer()
                     
                     VStack(spacing: 20) {
-                        SettingRow(title: "AUDIO", icon: "AudioIcon")
-                        SettingRow(title: "MUSIC", icon: "MusicIcon")
-                        SettingRow(title: "INFORMATION", icon: "InformationIcon")
+                        Button(action: {
+                            showSoundSettings = true
+                        }) {
+                            SettingRow(title: "Звуки", icon: "AudioIcon")
+                        }
+                        
+                        SettingRow(title: "Информация", icon: "InformationIcon")
                     }
                     .padding(.horizontal, 30)
                     
@@ -29,7 +34,7 @@ struct SettingsView: View {
                     Button(action: {
                         dismiss()
                     }) {
-                        Text("CLOSE")
+                        Text("Закрыть")
                             .font(.kenneyFuture(size: 24))
                             .foregroundColor(.white)
                             .padding(.horizontal, 40)
@@ -43,6 +48,9 @@ struct SettingsView: View {
                 }
             }
             .navigationBarHidden(true)
+            .sheet(isPresented: $showSoundSettings) {
+                SoundSettingsView()
+            }
         }
     }
 }

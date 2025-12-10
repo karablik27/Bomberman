@@ -5,7 +5,7 @@ struct MainMenuView: View {
     @State private var isPulsing = false
     @State private var showLobby = false
     @State private var backgroundMap: [[Character]] = MapLoader.loadRandomMap()
-    @StateObject private var audioService = AudioService.shared
+    private let audioService = DIContainer.shared.audioService
     
     var body: some View {
         ZStack {
