@@ -42,6 +42,7 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
     }
     
     private var audioPlayer: AVAudioPlayer?
+    private var effectsPlayer: AVAudioPlayer?
     
     init() {
         configureAudioSession()
@@ -98,5 +99,36 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
         } else {
             audioPlayer?.play()
         }
+    }
+    
+    // MARK: - Звуки эффектов
+    private func playSoundEffect(filename: String) {
+        guard isEffectsEnabled else { return }
+        
+        guard let url = Bundle.main.url(forResource: filename, withExtension: "mp3") else {
+            print("Не удалось найти файл \(filename).mp3")
+            return
+        }
+        
+        do {
+            let player = try AVAudioPlayer(contentsOf: url)
+            player.volume = effectsVolume
+            player.play()
+            effectsPlayer = player
+        } catch {
+            print("Ошибка воспроизведения звукового эффекта: \(error)")
+        }
+    }
+    
+    func playButtonSound() {
+        playSoundEffect(filename: "Buttons")
+    }
+    
+    func playSignLobbySound() {
+        playSoundEffect(filename: "SignLobby")
+    }
+    
+    func playReadySound() {
+        playSoundEffect(filename: "Ready")
     }
 }

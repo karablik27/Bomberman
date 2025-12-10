@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @State private var showSoundSettings = false
+    private let audioService = DIContainer.shared.audioService
     
     var body: some View {
         NavigationView {
@@ -20,6 +21,7 @@ struct SettingsView: View {
                     
                     VStack(spacing: 20) {
                         Button(action: {
+                            audioService.playButtonSound()
                             showSoundSettings = true
                         }) {
                             SettingRow(title: "Звуки", icon: "AudioIcon")
@@ -32,6 +34,7 @@ struct SettingsView: View {
                     Spacer()
                     
                     Button(action: {
+                        audioService.playButtonSound()
                         dismiss()
                     }) {
                         Text("Закрыть")

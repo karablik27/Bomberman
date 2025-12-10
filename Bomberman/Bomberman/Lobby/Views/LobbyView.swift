@@ -12,6 +12,7 @@ struct LobbyView: View {
     @StateObject private var vm = LobbyViewModel()
     @State private var name: String = ""
     @State private var didJoin = false
+    private let audioService = DIContainer.shared.audioService
     
     @Environment(\.dismiss) private var dismiss
 
@@ -23,6 +24,7 @@ struct LobbyView: View {
                 
                 HStack {
                     Button {
+                        audioService.playButtonSound()
                         vm.leaveLobby()
                         dismiss()
                     } label: {
@@ -54,6 +56,7 @@ struct LobbyView: View {
                             .frame(maxWidth: 250)
 
                         Button {
+                            audioService.playSignLobbySound()
                             vm.connectAndJoin(with: name)
                             didJoin = true
                         } label: {
@@ -101,6 +104,7 @@ struct LobbyView: View {
                     Spacer()
                     
                     Button {
+                        audioService.playReadySound()
                         vm.toggleReady()
                     } label: {
                         Text(vm.isReady ? "UNREADY" : "READY")
@@ -113,6 +117,7 @@ struct LobbyView: View {
                     }
 
                     Button {
+                        audioService.playButtonSound()
                         vm.leaveLobby()
                         didJoin = false
                         name = ""

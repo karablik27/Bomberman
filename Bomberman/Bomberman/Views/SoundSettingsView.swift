@@ -24,6 +24,7 @@ struct SoundSettingsView: View {
                 HStack {
                     Spacer()
                     Button(action: {
+                        audioService.playButtonSound()
                         dismiss()
                     }) {
                         ZStack {
@@ -58,6 +59,7 @@ struct SoundSettingsView: View {
                                 .foregroundColor(.black)
                             
                             Button(action: {
+                                audioService.playButtonSound()
                                 audioService.isMusicEnabled.toggle()
                             }) {
                                 Text(audioService.isMusicEnabled ? "Вкл." : "Выкл.")
@@ -78,6 +80,7 @@ struct SoundSettingsView: View {
                                 .foregroundColor(.black)
                             
                             Button(action: {
+                                audioService.playButtonSound()
                                 audioService.isEffectsEnabled.toggle()
                             }) {
                                 Text(audioService.isEffectsEnabled ? "Вкл." : "Выкл.")
