@@ -51,8 +51,11 @@ struct LobbyView: View {
                     Spacer()
                 }
                 .navigationDestination(isPresented: $vm.gameStarted) {
-                    GameView()
-                        .navigationBarBackButtonHidden(true)
+                    GameView(onLeaveToMainMenu: {
+                        vm.leaveLobby()
+                        dismiss()
+                    })
+                    .navigationBarBackButtonHidden(true)
                 }
             }
         }

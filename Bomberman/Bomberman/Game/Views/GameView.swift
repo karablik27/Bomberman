@@ -14,6 +14,8 @@ struct GameView: View {
     
     private let audioService = DIContainer.shared.audioService
     
+    var onLeaveToMainMenu: (() -> Void)?
+    
     private let tileSize: CGFloat = 40
     
     var body: some View {
@@ -96,7 +98,11 @@ struct GameView: View {
             Button {
                 audioService.playButtonSound()
                 vm.leaveGame()
-                dismiss()
+                if let onLeaveToMainMenu {
+                    onLeaveToMainMenu()
+                } else {
+                    dismiss()
+                }
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "chevron.left")
@@ -271,18 +277,37 @@ struct GameView: View {
                         .foregroundColor(.yellow)
                 }
                 
-                Button {
-                    audioService.playButtonSound()
-                    vm.leaveGame()
-                    dismiss()
-                } label: {
-                    Text("BACK TO MENU")
-                        .font(.kenneyFuture(size: 24))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 40)
-                        .padding(.vertical, 16)
-                        .background(Color.bombermanRed)
-                        .cornerRadius(12)
+                VStack(spacing: 12) {
+                    Button {
+                        audioService.playButtonSound()
+                        dismiss()
+                    } label: {
+                        Text("BACK TO LOBBY")
+                            .font(.kenneyFuture(size: 24))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 40)
+                            .padding(.vertical, 16)
+                            .background(Color.bombermanGreen)
+                            .cornerRadius(12)
+                    }
+                    
+                    Button {
+                        audioService.playButtonSound()
+                        vm.leaveGame()
+                        if let onLeaveToMainMenu {
+                            onLeaveToMainMenu()
+                        } else {
+                            dismiss()
+                        }
+                    } label: {
+                        Text("BACK TO MENU")
+                            .font(.kenneyFuture(size: 24))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 40)
+                            .padding(.vertical, 16)
+                            .background(Color.bombermanRed)
+                            .cornerRadius(12)
+                    }
                 }
                 .padding(.top, 20)
             }
