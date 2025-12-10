@@ -21,6 +21,7 @@ final class LobbyViewModel: ObservableObject {
 
     init(store: GameStateStore = DIContainer.shared.gameStateStore) {
         self.store = store
+        resetState()
         bind()
     }
 
@@ -28,12 +29,19 @@ final class LobbyViewModel: ObservableObject {
         store.$playerID
             .sink { [weak self] id in
                 self?.myID = id
+                if id == nil {
+                    self?.isReady = false
+                }
             }
             .store(in: &cancellables)
 
         store.$gameState
             .sink { [weak self] state in
-                guard let state else { return }
+                guard let state else {
+                    self?.players = []
+                    self?.isReady = false
+                    return
+                }
                 self?.players = state.players
 
                 if let id = self?.myID,
@@ -51,6 +59,7 @@ final class LobbyViewModel: ObservableObject {
     // MARK: - Actions
 
     func connectAndJoin(with name: String) {
+        resetState()
         store.connect()
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
@@ -70,6 +79,14 @@ final class LobbyViewModel: ObservableObject {
     }
 
     func leaveLobby() {
+        resetState()
         store.disconnect()
+    }
+    
+    func resetState() {
+        players = []
+        myID = nil
+        isReady = false
+        gameStarted = false
     }
 }

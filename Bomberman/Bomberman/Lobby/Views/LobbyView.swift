@@ -26,6 +26,8 @@ struct LobbyView: View {
                     Button {
                         audioService.playButtonSound()
                         vm.leaveLobby()
+                        didJoin = false
+                        name = ""
                         dismiss()
                     } label: {
                         HStack(spacing: 6) {

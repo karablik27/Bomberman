@@ -48,7 +48,12 @@ final class GameStateStore: ObservableObject {
     }
 
     func connect() { ws.connect() }
-    func disconnect() { ws.disconnect() }
+    
+    func disconnect() {
+        gameState = nil
+        playerID = nil
+        ws.disconnect()
+    }
 
     func send(_ text: String) {
         ws.send(text)
