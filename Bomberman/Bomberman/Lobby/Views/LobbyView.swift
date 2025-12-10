@@ -76,15 +76,26 @@ struct LobbyView: View {
                     Spacer()
                 }
                 else {
-                    Text("LOBBY")
-                        .font(.kenneyFuture(size: 40))
-                        .foregroundColor(.white)
-                        .padding(.top, 40)
+                    VStack(spacing: 8) {
+                        Text("LOBBY")
+                            .font(.kenneyFuture(size: 40))
+                            .foregroundColor(.white)
+                        
+                        Text("Игроков: \(vm.players.count)/4")
+                            .font(.kenneyFuture(size: 18))
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                    .padding(.top, 40)
 
                     ScrollView {
                         VStack(spacing: 12) {
                             ForEach(vm.players) { player in
-                                HStack {
+                                HStack(spacing: 12) {
+                                    Image("PlayerIcon")
+                                        .resizable()
+                                        .renderingMode(.original)
+                                        .frame(width: 32, height: 32)
+                                    
                                     Text(player.name)
                                         .foregroundColor(.white)
                                         .font(.kenneyFuture(size: 24))
