@@ -177,6 +177,7 @@ struct GameView: View {
                 AnimatedPlayerView(
                     player: player,
                     isMe: player.id == vm.myID,
+                    direction: vm.direction(for: player.id),
                     tileSize: tileSize
                 )
             }
@@ -292,23 +293,78 @@ struct GameView: View {
 struct AnimatedPlayerView: View {
     let player: Player
     let isMe: Bool
+    let direction: PlayerDirection
     let tileSize: CGFloat
     
+    @State private var previousX: Int = 0
+    @State private var previousY: Int = 0
+    @State private var isMoving: Bool = false
+    @State private var animationFrame: Int = 0
+    @State private var animationTimer: Timer?
+    
     var body: some View {
-        PlayerView(isMe: isMe, name: player.name)
-            .frame(width: tileSize, height: tileSize)
-            .offset(
-                x: CGFloat(player.x) * tileSize,
-                y: CGFloat(player.y) * tileSize
-            )
-            .animation(.easeOut(duration: 0.15), value: player.x)
-            .animation(.easeOut(duration: 0.15), value: player.y)
+        PlayerSpriteView(
+            isMe: isMe,
+            name: player.name,
+            direction: direction,
+            animationFrame: animationFrame
+        )
+        .frame(width: tileSize, height: tileSize)
+        .offset(
+            x: CGFloat(player.x) * tileSize,
+            y: CGFloat(player.y) * tileSize
+        )
+        .animation(.easeOut(duration: 0.15), value: player.x)
+        .animation(.easeOut(duration: 0.15), value: player.y)
+        .onChange(of: player.x) { newX in
+            startWalkingAnimation()
+            previousX = newX
+        }
+        .onChange(of: player.y) { newY in
+            startWalkingAnimation()
+            previousY = newY
+        }
+        .onAppear {
+            previousX = player.x
+            previousY = player.y
+        }
+        .onDisappear {
+            stopWalkingAnimation()
+        }
+    }
+    
+    private func startWalkingAnimation() {
+        stopWalkingAnimation()
+        
+        isMoving = true
+        animationFrame = 0
+        
+        var frameIndex = 0
+        let frameSequence = [0, 1, 2, 1]
+        
+        animationTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
+            frameIndex = (frameIndex + 1) % frameSequence.count
+            animationFrame = frameSequence[frameIndex]
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            stopWalkingAnimation()
+        }
+    }
+    
+    private func stopWalkingAnimation() {
+        animationTimer?.invalidate()
+        animationTimer = nil
+        isMoving = false
+        animationFrame = 0
     }
 }
 
-struct PlayerView: View {
+struct PlayerSpriteView: View {
     let isMe: Bool
     let name: String
+    let direction: PlayerDirection
+    let animationFrame: Int
     
     var body: some View {
         VStack(spacing: 2) {
@@ -318,7 +374,7 @@ struct PlayerView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
             
-            Image("PlayerDown")
+            Image(currentSpriteName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .overlay(
@@ -326,6 +382,22 @@ struct PlayerView: View {
                         .stroke(Color.blue, lineWidth: 2) : nil
                 )
         }
+    }
+    
+    private var currentSpriteName: String {
+        let frames = direction.animationFrames
+        let safeIndex = min(animationFrame, frames.count - 1)
+        return frames[safeIndex]
+    }
+}
+
+struct PlayerView: View {
+    let isMe: Bool
+    let name: String
+    let direction: PlayerDirection
+    
+    var body: some View {
+        PlayerSpriteView(isMe: isMe, name: name, direction: direction, animationFrame: 0)
     }
 }
 

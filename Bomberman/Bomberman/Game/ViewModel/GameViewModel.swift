@@ -22,6 +22,10 @@ final class GameViewModel: ObservableObject {
     @Published var bombs: [Bomb] = []
     @Published var explosions: [Explosion] = []
     
+    @Published var playerDirections: [String: PlayerDirection] = [:]
+    
+    private var previousPositions: [String: (x: Int, y: Int)] = [:]
+    
     private let store: GameStateStore
     private var cancellables = Set<AnyCancellable>()
     
@@ -40,6 +44,9 @@ final class GameViewModel: ObservableObject {
         store.$gameState
             .sink { [weak self] state in
                 guard let self, let state else { return }
+                
+                self.updatePlayerDirections(newPlayers: state.players)
+                
                 self.gameState = state
                 self.gameStatus = state.state
                 self.winner = state.winner
@@ -54,27 +61,58 @@ final class GameViewModel: ObservableObject {
     
     
     func moveUp() {
-        sendMove(dx: 0, dy: -1)
+        sendMove(dx: 0, dy: -1, direction: .up)
     }
     
     func moveDown() {
-        sendMove(dx: 0, dy: 1)
+        sendMove(dx: 0, dy: 1, direction: .down)
     }
     
     func moveLeft() {
-        sendMove(dx: -1, dy: 0)
+        sendMove(dx: -1, dy: 0, direction: .left)
     }
     
     func moveRight() {
-        sendMove(dx: 1, dy: 0)
+        sendMove(dx: 1, dy: 0, direction: .right)
     }
     
     func placeBomb() {
         send(PlaceBombMessage())
     }
     
-    private func sendMove(dx: Int, dy: Int) {
+    private func sendMove(dx: Int, dy: Int, direction: PlayerDirection) {
+        if let myID {
+            playerDirections[myID] = direction
+        }
         send(MoveMessage(dx: dx, dy: dy))
+    }
+    
+    func direction(for playerID: String) -> PlayerDirection {
+        playerDirections[playerID] ?? .down
+    }
+    
+    private func updatePlayerDirections(newPlayers: [Player]) {
+        for player in newPlayers {
+            if let previous = previousPositions[player.id] {
+                let dx = player.x - previous.x
+                let dy = player.y - previous.y
+                
+                if dx != 0 || dy != 0 {
+                    let newDirection = directionFromDelta(dx: dx, dy: dy)
+                    playerDirections[player.id] = newDirection
+                }
+            }
+            
+            previousPositions[player.id] = (x: player.x, y: player.y)
+        }
+    }
+    
+    private func directionFromDelta(dx: Int, dy: Int) -> PlayerDirection {
+        if dx > 0 { return .right }
+        if dx < 0 { return .left }
+        if dy > 0 { return .down }
+        if dy < 0 { return .up }
+        return .down // Default
     }
     
     private func send<T: Encodable>(_ message: T) {
