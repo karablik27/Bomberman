@@ -18,7 +18,7 @@ struct LobbyView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.bombermanBackground.ignoresSafeArea()
+                KenneyBlocksBackground()
                 
                 VStack {
                     HStack {
