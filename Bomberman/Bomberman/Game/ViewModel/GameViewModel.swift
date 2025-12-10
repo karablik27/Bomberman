@@ -25,12 +25,15 @@ final class GameViewModel: ObservableObject {
     @Published var playerDirections: [String: PlayerDirection] = [:]
     
     private var previousPositions: [String: (x: Int, y: Int)] = [:]
+    private var previousExplosions: Set<String> = []
     
     private let store: GameStateStore
+    private let audioService: AudioServiceProtocol
     private var cancellables = Set<AnyCancellable>()
     
     init(store: GameStateStore = DIContainer.shared.gameStateStore) {
         self.store = store
+        self.audioService = DIContainer.shared.audioService
         bind()
     }
     
@@ -51,6 +54,7 @@ final class GameViewModel: ObservableObject {
                 }
                 
                 self.updatePlayerDirections(newPlayers: state.players)
+                self.detectNewExplosions(newExplosions: state.explosions)
                 
                 self.gameState = state
                 self.gameStatus = state.state
@@ -62,6 +66,17 @@ final class GameViewModel: ObservableObject {
                 self.explosions = state.explosions
             }
             .store(in: &cancellables)
+    }
+    
+    private func detectNewExplosions(newExplosions: [Explosion]) {
+        let currentExplosionKeys = Set(newExplosions.map { "\($0.x),\($0.y)" })
+        let newExplosionKeys = currentExplosionKeys.subtracting(previousExplosions)
+        
+        if !newExplosionKeys.isEmpty {
+            audioService.playExplosionSound()
+        }
+        
+        previousExplosions = currentExplosionKeys
     }
     
     
