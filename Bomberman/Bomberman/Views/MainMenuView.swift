@@ -19,6 +19,7 @@ struct MainMenuView: View {
                 HStack {
                     Spacer()
                     Button(action: {
+                        audioService.playButtonSound()
                         showSettings = true
                     }) {
                         Image("SettingsIcon")
@@ -40,6 +41,7 @@ struct MainMenuView: View {
                 Spacer()
 
                 Button(action: {
+                    audioService.playButtonSound()
                     showLobby = true
                 }) {
                     HStack(spacing: 15) {

@@ -18,4 +18,8 @@ protocol AudioServiceProtocol: AnyObject {
     func stopMusic()
     func pauseMusic()
     func resumeMusic()
+    
+    func playButtonSound()
+    func playSignLobbySound()
+    func playReadySound()
 }
