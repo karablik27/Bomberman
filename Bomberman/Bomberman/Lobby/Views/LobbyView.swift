@@ -12,15 +12,17 @@ struct LobbyView: View {
     @StateObject private var vm = LobbyViewModel()
     @State private var name: String = ""
     @State private var didJoin = false
+    @State private var navigateToGame = false
     private let audioService = DIContainer.shared.audioService
     
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        ZStack {
-            Color.bombermanBackground.ignoresSafeArea()
+        NavigationStack {
+            ZStack {
+                Color.bombermanBackground.ignoresSafeArea()
 
-            VStack(spacing: 20) {
+                VStack(spacing: 20) {
                 
                 HStack {
                     Button {
@@ -143,6 +145,20 @@ struct LobbyView: View {
 
                     Spacer()
                         .frame(height: 40)
+                }
+
+                NavigationLink(
+                    destination: GameView(),
+                    isActive: $navigateToGame
+                ) {
+                    EmptyView()
+                }
+            }
+            }
+            .navigationBarHidden(true)
+            .onChange(of: vm.gameStarted) { started in
+                if started {
+                    navigateToGame = true
                 }
             }
         }
