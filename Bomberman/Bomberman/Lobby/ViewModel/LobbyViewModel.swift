@@ -39,20 +39,30 @@ final class LobbyViewModel: ObservableObject {
 
         store.$gameState
             .sink { [weak self] state in
+                guard let self else { return }
+                
                 guard let state else {
-                    self?.players = []
-                    self?.isReady = false
+                    self.players = []
+                    self.isReady = false
+                    self.gameStarted = false
                     return
                 }
-                self?.players = state.players
+                self.players = state.players
 
-                if let id = self?.myID,
+                if let id = self.myID,
                    let me = state.players.first(where: { $0.id == id }) {
-                    self?.isReady = me.ready
+                    self.isReady = me.ready
                 }
 
-                if state.state == .inProgress {
-                    self?.gameStarted = true
+                switch state.state {
+                case .inProgress:
+                    if self.gameStarted == false && self.myID != nil {
+                        self.gameStarted = true
+                    }
+                case .waiting:
+                    self.gameStarted = false
+                case .gameOver:
+                    break
                 }
             }
             .store(in: &cancellables)

@@ -44,6 +44,11 @@ final class GameViewModel: ObservableObject {
         store.$gameState
             .sink { [weak self] state in
                 guard let self, let state else { return }
+
+                if state.state == .waiting && self.gameStatus != .waiting {
+                    self.playerDirections.removeAll()
+                    self.previousPositions.removeAll()
+                }
                 
                 self.updatePlayerDirections(newPlayers: state.players)
                 
