@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import SwiftUI
 
 @MainActor
 final class LobbyViewModel: ObservableObject {
@@ -15,6 +16,7 @@ final class LobbyViewModel: ObservableObject {
     @Published var myID: String?
     @Published var isReady: Bool = false
     @Published var gameStarted: Bool = false
+    @Published var didJoin: Bool = false
 
     private let store: GameStateStore
     private var cancellables = Set<AnyCancellable>()
@@ -71,6 +73,9 @@ final class LobbyViewModel: ObservableObject {
             }
             """
             self.store.send(joinJSON)
+            withAnimation(.easeInOut(duration: 0.35)) {
+                self.didJoin = true
+            }
         }
     }
 
@@ -81,6 +86,9 @@ final class LobbyViewModel: ObservableObject {
     func leaveLobby() {
         resetState()
         store.disconnect()
+        withAnimation(.easeInOut(duration: 0.35)) {
+            didJoin = false
+        }
     }
     
     func resetState() {
