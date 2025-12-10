@@ -144,6 +144,10 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
         return Bundle.main.url(forResource: "Lobby", withExtension: "mp3")
     }
     
+    private func getGameMusicURL() -> URL? {
+        return Bundle.main.url(forResource: "Game", withExtension: "mp3")
+    }
+    
     func playLobbyMusic() {
         guard isMusicEnabled else { return }
         
@@ -160,6 +164,25 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
             audioPlayer?.play()
         } catch {
             print("Ошибка воспроизведения музыки: \(error)")
+        }
+    }
+    
+    func playGameMusic() {
+        guard isMusicEnabled else { return }
+        
+        guard let url = getGameMusicURL() else {
+            print("Не удалось найти файл музыки игры")
+            return
+        }
+        
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.numberOfLoops = -1
+            audioPlayer?.volume = musicVolume
+            audioPlayer?.prepareToPlay()
+            audioPlayer?.play()
+        } catch {
+            print("Ошибка воспроизведения музыки игры: \(error)")
         }
     }
     
@@ -257,5 +280,9 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
     
     func playReadySound() {
         playSoundEffect(filename: "Ready")
+    }
+    
+    func playExplosionSound() {
+        playSoundEffect(filename: "Explosion")
     }
 }

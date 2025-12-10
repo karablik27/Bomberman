@@ -46,6 +46,12 @@ struct GameView: View {
             }
         }
         .navigationBarHidden(true)
+        .onAppear {
+            audioService.playGameMusic()
+        }
+        .onDisappear {
+            audioService.playLobbyMusic()
+        }
     }
     
     private func gameBoardWithPlayerCentering(viewportSize: CGSize) -> some View {

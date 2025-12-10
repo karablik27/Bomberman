@@ -17,6 +17,7 @@ protocol AudioServiceProtocol: AnyObject {
     var customMusicFileName: String? { get }
     
     func playLobbyMusic()
+    func playGameMusic()
     func stopMusic()
     func pauseMusic()
     func resumeMusic()
@@ -24,6 +25,7 @@ protocol AudioServiceProtocol: AnyObject {
     func playButtonSound()
     func playSignLobbySound()
     func playReadySound()
+    func playExplosionSound()
     
     func setCustomMusic(url: URL) throws
     func useDefaultMusic()
