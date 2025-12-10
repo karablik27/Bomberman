@@ -14,23 +14,19 @@ struct LobbyEnterView: View {
     @State private var name: String = ""
 
     var body: some View {
-        VStack(spacing: 35) {
+        VStack(spacing: 40) {
 
             Text("ENTER NAME")
-                .font(.kenneyFuture(size: 32))
+                .font(.kenneyFuture(size: 34))
                 .foregroundColor(.white)
-                .shadow(color: .white.opacity(0.7), radius: 4)
+                .shadow(color: .white.opacity(0.9), radius: 6)
 
-            TextField("", text: $name)
-                .font(.kenneyFuture(size: 22))
-                .padding()
-                .background(Color.white.opacity(0.12))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(.white.opacity(0.3), lineWidth: 2)
-                )
+            TextField("NAME", text: $name)
+                .font(.kenneyFuture(size: 24))
                 .foregroundColor(.white)
-                .frame(width: 260)
+                .frame(width: 260, height: 55)
+                .gameInputFrame()
+            
 
             Button {
                 audioService.playSignLobbySound()
@@ -39,16 +35,13 @@ struct LobbyEnterView: View {
                 Text("JOIN LOBBY")
                     .font(.kenneyFuture(size: 30))
                     .foregroundColor(.white)
-                    .frame(width: 260, height: 70)
+                    .padding(.vertical, 12)
+                    .frame(width: 260)
                     .background(Color.bombermanRed)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(.white.opacity(0.4), lineWidth: 3)
-                    )
-                    .cornerRadius(14)
-                    .shadow(color: .black.opacity(0.6), radius: 8)
             }
+            .gameButtonFrame()
         }
-        .padding(.top, 80)
+        .padding(.top, 90)
     }
 }
+

@@ -8,83 +8,83 @@
 import SwiftUI
 
 struct LobbyPlayersView: View {
-
+    
     private let audioService = DIContainer.shared.audioService
     @ObservedObject var vm: LobbyViewModel
-
+    
     var body: some View {
         VStack(spacing: 20) {
-
-            VStack(spacing: 8) {
+            
+            VStack(spacing: 6) {
                 Text("LOBBY")
-                    .font(.kenneyFuture(size: 44))
+                    .font(.kenneyFuture(size: 46))
                     .foregroundColor(.white)
-                    .shadow(color: .white.opacity(0.8), radius: 6, x: 0, y: 0)
-                    .padding(.top, 30)
-
-
+                    .shadow(color: .white.opacity(0.9), radius: 10)
+                
                 Text("Players: \(vm.players.count)/4")
-                    .font(.kenneyFuture(size: 18))
-                    .foregroundColor(.white.opacity(0.7))
+                    .font(.kenneyFuture(size: 20))
+                    .foregroundColor(.white.opacity(0.75))
             }
-            .padding(.top, 20)
-
-            ScrollView {
-                VStack(spacing: 12) {
+            .padding(.top, 40)
+            
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 18) {
                     ForEach(vm.players) { player in
-                        HStack(spacing: 12) {
+                        HStack(spacing: 14) {
+                            
                             Image("PlayerIcon")
                                 .resizable()
-                                .frame(width: 34, height: 34)
-
+                                .frame(width: 36, height: 36)
+                            
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(player.name)
                                     .font(.kenneyFuture(size: 22))
                                     .foregroundColor(.white)
-
+                                
                                 Text(player.ready ? "READY" : "NOT READY")
                                     .font(.kenneyFuture(size: 16))
                                     .foregroundColor(player.ready ? .green : .yellow)
                             }
-
+                            
                             Spacer()
                         }
-                        .pixelPanel()
-                        .padding(.horizontal, 20)
+                        .playerCard()
+                        .padding(.horizontal, 22)
                     }
                 }
+                .padding(.top, 12)
             }
-
+            
             Spacer()
-
+            
+            
             Button {
                 audioService.playReadySound()
                 vm.toggleReady()
             } label: {
                 Text(vm.isReady ? "UNREADY" : "READY")
-                    .font(.kenneyFuture(size: 32))
+                    .font(.kenneyFuture(size: 30))
                     .foregroundColor(.white)
-                    .frame(width: 260, height: 70)
-                    .background(vm.isReady ? Color.gray : Color.green)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(.white.opacity(0.4), lineWidth: 3)
-                    )
-                    .cornerRadius(14)
-                    .shadow(color: .black.opacity(0.5), radius: 8, x: 0, y: 4)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 70)
             }
+            .gameButtonStyle(color: vm.isReady ? .gray : .green)
+            .padding(.horizontal, 40)
             .padding(.top, 10)
-
+            
             Button {
-                audioService.playButtonSound()
                 vm.leaveLobby()
             } label: {
                 Text("LEAVE")
-                    .font(.kenneyFuture(size: 24))
+                    .font(.kenneyFuture(size: 22))
                     .foregroundColor(.red)
-                    .padding(.top, 8)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 24)
             }
-
+            .gameButtonFrame()
+            .padding(.top, 8)
+            
+            
             Spacer().frame(height: 40)
         }
     }
