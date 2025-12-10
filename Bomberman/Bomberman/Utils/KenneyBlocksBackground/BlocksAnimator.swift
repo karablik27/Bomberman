@@ -12,10 +12,12 @@ import Combine
 class BlocksAnimator: ObservableObject {
     @Published var blocks: [Block] = []
 
-    let blockImages = ["block_01", "block_02", "block_03"]
+    let blockImages = ["block_01", "block_02", "block_03", "block_04"]
 
     var screenSize: CGSize = .zero
     var explodePhase = false
+    var spawnTask: Task<Void, Never>?
+    var updateTask: Task<Void, Never>?
 
     func spawnBlock() {
         guard !explodePhase, screenSize != .zero else { return }
@@ -34,6 +36,13 @@ class BlocksAnimator: ObservableObject {
         )
 
         blocks.append(block)
+    }
+    
+    func stop() {
+        spawnTask?.cancel()
+        updateTask?.cancel()
+        spawnTask = nil
+        updateTask = nil
     }
 
     func update() {
