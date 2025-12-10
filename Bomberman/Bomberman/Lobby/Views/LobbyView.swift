@@ -12,7 +12,6 @@ struct LobbyView: View {
     @StateObject private var vm = LobbyViewModel()
     @State private var name: String = ""
     @State private var didJoin = false
-    @State private var navigateToGame = false
     @State private var navigationPath = NavigationPath()
     @State private var isInGame = false
     private let audioService = DIContainer.shared.audioService
