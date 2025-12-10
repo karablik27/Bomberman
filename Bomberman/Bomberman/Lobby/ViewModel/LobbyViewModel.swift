@@ -49,7 +49,7 @@ final class LobbyViewModel: ObservableObject {
                     self?.isReady = me.ready
                 }
 
-                if state.state == .inProgress {
+                if state.state == .inProgress && self?.gameStarted == false {
                     self?.gameStarted = true
                 }
             }

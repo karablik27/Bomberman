@@ -13,12 +13,14 @@ struct LobbyView: View {
     @State private var name: String = ""
     @State private var didJoin = false
     @State private var navigateToGame = false
+    @State private var navigationPath = NavigationPath()
+    @State private var isInGame = false
     private let audioService = DIContainer.shared.audioService
     
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ZStack {
                 Color.bombermanBackground.ignoresSafeArea()
 
@@ -147,18 +149,34 @@ struct LobbyView: View {
                         .frame(height: 40)
                 }
 
-                NavigationLink(
-                    destination: GameView(),
-                    isActive: $navigateToGame
-                ) {
-                    EmptyView()
-                }
             }
             }
             .navigationBarHidden(true)
+            .navigationDestination(for: String.self) { destination in
+                if destination == "game" {
+                    GameView(
+                        onNavigateToRoot: {
+                            isInGame = false
+                            navigationPath = NavigationPath()
+                            vm.leaveLobby()
+                            didJoin = false
+                            name = ""
+                            dismiss()
+                        },
+                        onBackToLobby: {
+                            isInGame = false
+                            vm.resetState()
+                        }
+                    )
+                    .onAppear {
+                        isInGame = true
+                    }
+                }
+            }
             .onChange(of: vm.gameStarted) { started in
-                if started {
-                    navigateToGame = true
+                if started && !isInGame {
+                    isInGame = true
+                    navigationPath.append("game")
                 }
             }
         }

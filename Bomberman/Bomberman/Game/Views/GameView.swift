@@ -15,6 +15,12 @@ struct GameView: View {
     private let audioService = DIContainer.shared.audioService
     
     private let tileSize: CGFloat = 40
+
+    @State private var hasGameEnded: Bool = false
+    @State private var finalWinner: String?
+    
+    var onNavigateToRoot: (() -> Void)?
+    var onBackToLobby: (() -> Void)?
     
     var body: some View {
         GeometryReader { geometry in
@@ -38,12 +44,18 @@ struct GameView: View {
                         .padding(.bottom, 30)
                 }
                 
-                if vm.isGameOver {
+                if hasGameEnded {
                     gameOverOverlay
                 }
             }
         }
         .navigationBarHidden(true)
+        .onChange(of: vm.isGameOver) { isOver in
+            if isOver && !hasGameEnded {
+                hasGameEnded = true
+                finalWinner = vm.winner
+            }
+        }
     }
     
     private func gameBoardWithPlayerCentering(viewportSize: CGSize) -> some View {
@@ -96,7 +108,11 @@ struct GameView: View {
             Button {
                 audioService.playButtonSound()
                 vm.leaveGame()
-                dismiss()
+                if let onNavigateToRoot {
+                    onNavigateToRoot()
+                } else {
+                    dismiss()
+                }
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "chevron.left")
@@ -265,7 +281,7 @@ struct GameView: View {
                     .font(.kenneyFuture(size: 40))
                     .foregroundColor(.white)
                 
-                if let winner = vm.winner {
+                if let winner = finalWinner {
                     Text(winner == "НИЧЬЯ" ? "DRAW" : "Winner: \(winner)")
                         .font(.kenneyFuture(size: 28))
                         .foregroundColor(.yellow)
@@ -274,7 +290,11 @@ struct GameView: View {
                 Button {
                     audioService.playButtonSound()
                     vm.leaveGame()
-                    dismiss()
+                    if let onNavigateToRoot {
+                        onNavigateToRoot()
+                    } else {
+                        dismiss()
+                    }
                 } label: {
                     Text("BACK TO MENU")
                         .font(.kenneyFuture(size: 24))
@@ -285,6 +305,20 @@ struct GameView: View {
                         .cornerRadius(12)
                 }
                 .padding(.top, 20)
+                
+                Button {
+                    audioService.playButtonSound()
+                    onBackToLobby?()
+                    dismiss()
+                } label: {
+                    Text("BACK TO LOBBY")
+                        .font(.kenneyFuture(size: 24))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 40)
+                        .padding(.vertical, 16)
+                        .background(Color.green)
+                        .cornerRadius(12)
+                }
             }
         }
     }
@@ -446,5 +480,5 @@ extension Array {
 }
 
 #Preview {
-    GameView()
+    GameView(onNavigateToRoot: nil, onBackToLobby: nil)
 }
