@@ -13,6 +13,8 @@ protocol AudioServiceProtocol: AnyObject {
     var isEffectsEnabled: Bool { get set }
     var musicVolume: Float { get set }
     var effectsVolume: Float { get set }
+    var isUsingCustomMusic: Bool { get }
+    var customMusicFileName: String? { get }
     
     func playLobbyMusic()
     func stopMusic()
@@ -22,4 +24,7 @@ protocol AudioServiceProtocol: AnyObject {
     func playButtonSound()
     func playSignLobbySound()
     func playReadySound()
+    
+    func setCustomMusic(url: URL) throws
+    func useDefaultMusic()
 }

@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @State private var showSoundSettings = false
+    @State private var showMusicSettings = false
     private let audioService = DIContainer.shared.audioService
     
     var body: some View {
@@ -25,6 +26,13 @@ struct SettingsView: View {
                             showSoundSettings = true
                         }) {
                             SettingRow(title: "Звуки", icon: "AudioIcon")
+                        }
+                        
+                        Button(action: {
+                            audioService.playButtonSound()
+                            showMusicSettings = true
+                        }) {
+                            SettingRow(title: "Музыка", icon: "MusicIcon")
                         }
                         
                         SettingRow(title: "Информация", icon: "InformationIcon")
@@ -53,6 +61,9 @@ struct SettingsView: View {
             .navigationBarHidden(true)
             .sheet(isPresented: $showSoundSettings) {
                 SoundSettingsView()
+            }
+            .sheet(isPresented: $showMusicSettings) {
+                MusicSettingsView()
             }
         }
     }
