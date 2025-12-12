@@ -17,6 +17,7 @@ final class LobbyViewModel: ObservableObject {
     @Published var isReady: Bool = false
     @Published var gameStarted: Bool = false
     @Published var didJoin: Bool = false
+    @Published var chatMessages: [ChatMessage] = []
 
     private let store: GameStateStore
     private var cancellables = Set<AnyCancellable>()
@@ -70,6 +71,14 @@ final class LobbyViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+        
+        // Подписываемся на сообщения чата
+            NotificationCenter.default.publisher(for: NSNotification.Name("ChatMessageReceived"))
+                .compactMap { $0.object as? ChatMessage }
+                .sink { [weak self] message in
+                    self?.chatMessages.append(message)
+                }
+                .store(in: &cancellables)
     }
 
     // MARK: - Actions
@@ -92,6 +101,21 @@ final class LobbyViewModel: ObservableObject {
             }
         }
     }
+    
+    func sendChatMessage(_ text: String) {
+        let escapedText = text
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+        
+        let message = """
+        {
+            "type": "chat_message",
+            "message": "\(escapedText)"
+        }
+        """
+        store.send(message)
+    }
 
     func toggleReady() {
         store.send(#"{"type":"ready"}"#)
@@ -110,5 +134,6 @@ final class LobbyViewModel: ObservableObject {
         myID = nil
         isReady = false
         gameStarted = false
+        chatMessages = []
     }
 }

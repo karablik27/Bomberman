@@ -26,6 +26,10 @@ struct ServerEventDecoder: ServerEventDecoderProtocol {
         case "game_state":
             guard let msg = try? decoder.decode(GameStateMessage.self, from: data) else { return nil }
             return .gameState(msg.payload)
+        
+        case "chat_message":
+            guard let msg = try? decoder.decode(ChatMessages.self, from: data) else { return nil }
+            return .chatMessage(msg.payload)
 
         default:
             return nil

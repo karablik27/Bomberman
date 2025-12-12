@@ -8,4 +8,5 @@
 enum ServerEvent {
     case assignID(String)
     case gameState(GameState)
+    case chatMessage(ChatMessage)
 }
