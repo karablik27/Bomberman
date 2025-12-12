@@ -4,6 +4,7 @@ struct MainMenuView: View {
     @State private var showSettings = false
     @State private var isPulsing = false
     @State private var showLobby = false
+    @State private var showOnboarding = false
     @State private var backgroundMap: [[Character]] = MapLoader.loadRandomMap()
     private let audioService = DIContainer.shared.audioService
     
@@ -74,14 +75,21 @@ struct MainMenuView: View {
                 Spacer()
                     .frame(height: 100)
             }
+            .fullScreenCover(isPresented: $showOnboarding) {
+                OnboardingView(isPresented: $showOnboarding)
+            }
         }
-        .sheet(isPresented: $showSettings) {
+        .fullScreenCover(isPresented: $showSettings) {
             SettingsView()
         }
         .onAppear {
+            if !OnboardingService.shared.hasSeenOnboarding {
+                showOnboarding = true
+            }
             audioService.playLobbyMusic()
             isPulsing = true
         }
+        
     }
 }
 
