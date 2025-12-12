@@ -9,6 +9,10 @@ import SwiftUI
 
 struct GameView: View {
     
+    @State private var scale: CGFloat = 1.0
+    @State private var lastScale: CGFloat = 1.0
+    @GestureState private var magnifyBy: CGFloat = 1.0
+    
     @StateObject private var vm = GameViewModel()
     @Environment(\.dismiss) private var dismiss
     
@@ -84,19 +88,33 @@ struct GameView: View {
             offsetY = (viewportSize.height - boardHeight) / 2
         }
         
+        let currentScale = scale * magnifyBy
+        
         return GeometryReader { geo in
             gameBoard
+                .scaleEffect(currentScale)
                 .position(
-                    x: boardWidth / 2 + offsetX,
-                    y: boardHeight / 2 + offsetY
+                    x: (boardWidth / 2 + offsetX) * currentScale + (viewportSize.width / 2) * (1 - currentScale),
+                    y: (boardHeight / 2 + offsetY) * currentScale + (viewportSize.height / 2) * (1 - currentScale)
                 )
                 .animation(.easeOut(duration: 0.15), value: offsetX)
                 .animation(.easeOut(duration: 0.15), value: offsetY)
+                .simultaneousGesture(
+                    MagnificationGesture()
+                        .updating($magnifyBy) { currentState, gestureState, _ in
+                            gestureState = currentState
+                        }
+                        .onEnded { value in
+                            scale = min(max(scale * value, 0.5), 2.0)
+                            lastScale = scale
+                        }
+                )
         }
         .frame(width: viewportSize.width, height: viewportSize.height)
         .clipped()
         .background(Color.black.opacity(0.3))
         .cornerRadius(8)
+        .contentShape(Rectangle())
     }
     
     private var topBar: some View {
@@ -131,13 +149,53 @@ struct GameView: View {
             
             Spacer()
             
-            HStack(spacing: 6) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 18, weight: .bold))
-                Text("LEAVE")
-                    .font(.kenneyFuture(size: 18))
+            HStack(spacing: 8) {
+                Button {
+                    audioService.playButtonSound()
+                    withAnimation {
+                        scale = min(scale + 0.25, 2.0)
+                        lastScale = scale
+                    }
+                } label: {
+                    Image(systemName: "plus.magnifyingglass")
+                        .foregroundColor(.white)
+                        .font(.system(size: 16, weight: .bold))
+                        .padding(8)
+                        .background(Color.black.opacity(0.6))
+                        .cornerRadius(8)
+                }
+                
+                Button {
+                    audioService.playButtonSound()
+                    withAnimation {
+                        scale = max(scale - 0.25, 0.5)
+                        lastScale = scale
+                    }
+                } label: {
+                    Image(systemName: "minus.magnifyingglass")
+                        .foregroundColor(.white)
+                        .font(.system(size: 16, weight: .bold))
+                        .padding(8)
+                        .background(Color.black.opacity(0.6))
+                        .cornerRadius(8)
+                }
+                
+                Button {
+                    audioService.playButtonSound()
+                    withAnimation {
+                        scale = 1.0
+                        lastScale = scale
+                    }
+                } label: {
+                    Text("1x")
+                        .font(.kenneyFuture(size: 14))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(Color.black.opacity(0.6))
+                        .cornerRadius(8)
+                }
             }
-            .foregroundColor(.clear)
         }
         .padding(.horizontal, 20)
         .padding(.top, 10)
