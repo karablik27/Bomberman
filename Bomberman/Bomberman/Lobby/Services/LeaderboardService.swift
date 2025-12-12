@@ -8,45 +8,47 @@
 import Foundation
 
 @MainActor
-class LeaderboardService {
-    static let shared = LeaderboardService()
-    
+final class LeaderboardService: LeaderboardServiceProtocol {
+
     private let winsKey = "playerWins"
-    
-    private init() {}
-    
+    private let userDefaults: UserDefaults
+
+    init(userDefaults: UserDefaults = .standard) {
+        self.userDefaults = userDefaults
+    }
+
     func recordWin(for playerName: String) {
         var wins = getWins()
         wins[playerName, default: 0] += 1
         saveWins(wins)
     }
-    
+
     func getWins() -> [String: Int] {
-        guard let data = UserDefaults.standard.dictionary(forKey: winsKey) as? [String: Int] else {
+        guard let data = userDefaults.dictionary(forKey: winsKey) as? [String: Int] else {
             return [:]
         }
         return data
     }
-    
+
     func getWinCount(for playerName: String) -> Int {
-        return getWins()[playerName] ?? 0
+        getWins()[playerName] ?? 0
     }
-    
+
     func getSortedLeaderboard() -> [(name: String, wins: Int)] {
-        let wins = getWins()
-        return wins.sorted { first, second in
-            if first.value == second.value {
-                return first.key < second.key
+        getWins()
+            .sorted {
+                $0.value == $1.value
+                    ? $0.key < $1.key
+                    : $0.value > $1.value
             }
-            return first.value > second.value
-        }.map { (name: $0.key, wins: $0.value) }
+            .map { (name: $0.key, wins: $0.value) }
     }
-    
+
     func resetLeaderboard() {
-        UserDefaults.standard.removeObject(forKey: winsKey)
+        userDefaults.removeObject(forKey: winsKey)
     }
-    
+
     private func saveWins(_ wins: [String: Int]) {
-        UserDefaults.standard.set(wins, forKey: winsKey)
+        userDefaults.set(wins, forKey: winsKey)
     }
 }

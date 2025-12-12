@@ -9,16 +9,26 @@
 import SwiftUI
 
 struct LeaderboardView: View {
-    @State private var leaderboard: [(name: String, wins: Int)] = []
-    
+    @StateObject private var vm: LeaderboardViewModel
+
+    init(
+        leaderboardService: LeaderboardServiceProtocol = DIContainer.shared.leaderboardService
+    ) {
+        _vm = StateObject(
+            wrappedValue: LeaderboardViewModel(
+                leaderboardService: leaderboardService
+            )
+        )
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             Text("ЛИДЕРБОРД")
                 .font(.kenneyFuture(size: 24))
                 .foregroundColor(.white)
                 .padding(.bottom, 12)
-            
-            if leaderboard.isEmpty {
+
+            if vm.leaderboard.isEmpty {
                 Text("Нет статистики")
                     .font(.kenneyFuture(size: 18))
                     .foregroundColor(.white.opacity(0.6))
@@ -26,27 +36,25 @@ struct LeaderboardView: View {
             } else {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 10) {
-                        ForEach(Array(leaderboard.enumerated()), id: \.element.name) { index, entry in
+                        ForEach(Array(vm.leaderboard.enumerated()), id: \.element.name) { index, entry in
                             HStack(spacing: 12) {
-                                // Место
+
                                 Text("\(index + 1)")
                                     .font(.kenneyFuture(size: 20))
                                     .foregroundColor(.white)
                                     .frame(width: 30)
-                                
-                                // Имя игрока
+
                                 Text(entry.name)
                                     .font(.kenneyFuture(size: 18))
                                     .foregroundColor(.white)
-                                
+
                                 Spacer()
-                                
-                                // Количество побед
+
                                 HStack(spacing: 4) {
                                     Text("\(entry.wins)")
                                         .font(.kenneyFuture(size: 18))
                                         .foregroundColor(.yellow)
-                                    
+
                                     Text("W")
                                         .font(.kenneyFuture(size: 14))
                                         .foregroundColor(.white.opacity(0.7))
@@ -56,7 +64,11 @@ struct LeaderboardView: View {
                             .padding(.vertical, 10)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .fill(index == 0 ? Color.yellow.opacity(0.2) : Color.white.opacity(0.1))
+                                    .fill(
+                                        index == 0
+                                        ? Color.yellow.opacity(0.2)
+                                        : Color.white.opacity(0.1)
+                                    )
                             )
                         }
                     }
@@ -71,11 +83,7 @@ struct LeaderboardView: View {
                 .fill(Color.black.opacity(0.3))
         )
         .onAppear {
-            updateLeaderboard()
+            vm.load()
         }
-    }
-    
-    private func updateLeaderboard() {
-        leaderboard = LeaderboardService.shared.getSortedLeaderboard()
     }
 }

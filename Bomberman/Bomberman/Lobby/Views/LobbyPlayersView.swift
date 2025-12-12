@@ -9,10 +9,23 @@ import SwiftUI
 
 struct LobbyPlayersView: View {
     
-    private let audioService = DIContainer.shared.audioService
     @ObservedObject var vm: LobbyViewModel
+
+    private let audioService: AudioServiceProtocol
+    private let leaderboardService: LeaderboardServiceProtocol
+    
     @State private var showLeaderboard = false
     @State private var showExplosionTrajectory = GameSettings.shared.showExplosionTrajectory
+    
+    init(
+        vm: LobbyViewModel,
+        audioService: AudioServiceProtocol,
+        leaderboardService: LeaderboardServiceProtocol
+    ) {
+        self.vm = vm
+        self.audioService = audioService
+        self.leaderboardService = leaderboardService
+    }
     
     var body: some View {
         VStack(spacing: 20) {
@@ -58,7 +71,7 @@ struct LobbyPlayersView: View {
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 18) {
-                    ForEach(vm.players) { player in
+                    ForEach(vm.players, id: \.id) { player in
                         HStack(spacing: 14) {
                             
                             Image("PlayerIcon")
@@ -75,7 +88,7 @@ struct LobbyPlayersView: View {
                                         .font(.kenneyFuture(size: 16))
                                         .foregroundColor(player.ready ? .green : .yellow)
                                     
-                                    let wins = LeaderboardService.shared.getWinCount(for: player.name)
+                                    let wins = leaderboardService.getWinCount(for: player.name)
                                     if wins > 0 {
                                         Text("• \(wins)W")
                                             .font(.kenneyFuture(size: 14))

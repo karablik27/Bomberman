@@ -30,11 +30,17 @@ final class GameViewModel: ObservableObject {
     
     private let store: GameStateStore
     private let audioService: AudioServiceProtocol
+    private let leaderboardService: LeaderboardServiceProtocol
     private var cancellables = Set<AnyCancellable>()
     
-    init(store: GameStateStore = DIContainer.shared.gameStateStore) {
+    init(
+        store: GameStateStore = DIContainer.shared.gameStateStore,
+        audioService: AudioServiceProtocol = DIContainer.shared.audioService,
+        leaderboardService: LeaderboardServiceProtocol = DIContainer.shared.leaderboardService
+    ) {
         self.store = store
-        self.audioService = DIContainer.shared.audioService
+        self.audioService = audioService
+        self.leaderboardService = leaderboardService
         bind()
     }
     
@@ -62,7 +68,7 @@ final class GameViewModel: ObservableObject {
                 if state.state == .gameOver, let winner = state.winner, winner != "НИЧЬЯ" {
                     if self.lastWinner != winner {
                         self.lastWinner = winner
-                        LeaderboardService.shared.recordWin(for: winner)
+                        leaderboardService.recordWin(for: winner)
                     }
                 }
                 
