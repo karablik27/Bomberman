@@ -12,6 +12,8 @@ struct GameView: View {
     @State private var scale: CGFloat = 1.0
     @State private var lastScale: CGFloat = 1.0
     @GestureState private var magnifyBy: CGFloat = 1.0
+    @State private var panOffset: CGSize = .zero
+    @GestureState private var panTranslation: CGSize = .zero
     
     @StateObject private var vm = GameViewModel()
     @Environment(\.dismiss) private var dismiss
@@ -73,22 +75,67 @@ struct GameView: View {
             cameraY = CGFloat(myPlayer.y) * tileSize + tileSize / 2
         }
         
-        var offsetX = viewportSize.width / 2 - cameraX
-        var offsetY = viewportSize.height / 2 - cameraY
-        
-        if boardWidth > viewportSize.width {
-            offsetX = min(0, max(viewportSize.width - boardWidth, offsetX))
-        } else {
-            offsetX = (viewportSize.width - boardWidth) / 2
-        }
-        
-        if boardHeight > viewportSize.height {
-            offsetY = min(0, max(viewportSize.height - boardHeight, offsetY))
-        } else {
-            offsetY = (viewportSize.height - boardHeight) / 2
-        }
-        
         let currentScale = scale * magnifyBy
+        
+        // Вычисляем размеры карты с учетом зума
+        let scaledBoardWidth = boardWidth * currentScale
+        let scaledBoardHeight = boardHeight * currentScale
+        
+        // Проверяем, помещается ли карта на экран
+        let fitsOnScreen = scaledBoardWidth <= viewportSize.width && scaledBoardHeight <= viewportSize.height
+        
+        var offsetX: CGFloat
+        var offsetY: CGFloat
+        
+        if fitsOnScreen {
+            // Карта помещается - показываем всю карту, центрируем
+            offsetX = (viewportSize.width - scaledBoardWidth) / 2
+            offsetY = (viewportSize.height - scaledBoardHeight) / 2
+            
+            // Сбрасываем панорамирование, если карта помещается
+            if abs(panOffset.width) > 0.1 || abs(panOffset.height) > 0.1 {
+                DispatchQueue.main.async {
+                    panOffset = .zero
+                }
+            }
+        } else {
+            // Карта не помещается - используем панорамирование или центрирование на игроке
+            let totalPanX = panOffset.width + panTranslation.width
+            let totalPanY = panOffset.height + panTranslation.height
+            
+            // Вычисляем границы для панорамирования
+            let maxPanX = (scaledBoardWidth - viewportSize.width) / 2
+            let maxPanY = (scaledBoardHeight - viewportSize.height) / 2
+            
+            // Ограничиваем панорамирование границами
+            let constrainedPanX = min(maxPanX, max(-maxPanX, totalPanX))
+            let constrainedPanY = min(maxPanY, max(-maxPanY, totalPanY))
+            
+            // Используем панорамирование, если оно есть
+            if abs(constrainedPanX) > 0.1 || abs(constrainedPanY) > 0.1 ||
+               abs(panOffset.width) > 0.1 || abs(panOffset.height) > 0.1 {
+                // Используем панорамирование
+                offsetX = constrainedPanX - (boardWidth * currentScale / 2) + (viewportSize.width / 2)
+                offsetY = constrainedPanY - (boardHeight * currentScale / 2) + (viewportSize.height / 2)
+            } else {
+                // Если панорамирования нет, центрируем на игроке
+                offsetX = viewportSize.width / 2 - cameraX * currentScale
+                offsetY = viewportSize.height / 2 - cameraY * currentScale
+                
+                // Ограничиваем границами карты
+                if scaledBoardWidth > viewportSize.width {
+                    let minOffsetX = viewportSize.width - scaledBoardWidth
+                    let maxOffsetX: CGFloat = 0
+                    offsetX = min(maxOffsetX, max(minOffsetX, offsetX))
+                }
+                
+                if scaledBoardHeight > viewportSize.height {
+                    let minOffsetY = viewportSize.height - scaledBoardHeight
+                    let maxOffsetY: CGFloat = 0
+                    offsetY = min(maxOffsetY, max(minOffsetY, offsetY))
+                }
+            }
+        }
         
         return GeometryReader { geo in
             gameBoard
@@ -107,6 +154,41 @@ struct GameView: View {
                         .onEnded { value in
                             scale = min(max(scale * value, 0.5), 2.0)
                             lastScale = scale
+                            
+                            // Сбрасываем панорамирование если карта теперь помещается
+                            let newScaledWidth = boardWidth * scale
+                            let newScaledHeight = boardHeight * scale
+                            if newScaledWidth <= viewportSize.width && newScaledHeight <= viewportSize.height {
+                                panOffset = .zero
+                            }
+                        }
+                )
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 5)
+                        .updating($panTranslation) { value, state, _ in
+                            // Панорамирование работает только если карта не помещается
+                            let scaledBoardWidth = boardWidth * (scale * magnifyBy)
+                            let scaledBoardHeight = boardHeight * (scale * magnifyBy)
+                            if scaledBoardWidth > viewportSize.width || scaledBoardHeight > viewportSize.height {
+                                state = value.translation
+                            }
+                        }
+                        .onEnded { value in
+                            let scaledBoardWidth = boardWidth * scale
+                            let scaledBoardHeight = boardHeight * scale
+                            
+                            // Панорамирование работает только если карта не помещается
+                            if scaledBoardWidth > viewportSize.width || scaledBoardHeight > viewportSize.height {
+                                panOffset.width += value.translation.width
+                                panOffset.height += value.translation.height
+                                
+                                // Ограничиваем границы
+                                let maxPanX = (scaledBoardWidth - viewportSize.width) / 2
+                                let maxPanY = (scaledBoardHeight - viewportSize.height) / 2
+                                
+                                panOffset.width = min(maxPanX, max(-maxPanX, panOffset.width))
+                                panOffset.height = min(maxPanY, max(-maxPanY, panOffset.height))
+                            }
                         }
                 )
         }
@@ -155,6 +237,7 @@ struct GameView: View {
                     withAnimation {
                         scale = min(scale + 0.25, 2.0)
                         lastScale = scale
+                        
                     }
                 } label: {
                     Image(systemName: "plus.magnifyingglass")
@@ -185,6 +268,7 @@ struct GameView: View {
                     withAnimation {
                         scale = 1.0
                         lastScale = scale
+                        panOffset = .zero
                     }
                 } label: {
                     Text("1x")
