@@ -27,12 +27,15 @@ struct PlayersPanelView: View {
             }
             .padding(.bottom, 6)
 
-            VStack(spacing: 10) {
-                ForEach(players, id: \.id) { player in
-                    PlayerRowView(player: player)
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 10) {
+                    ForEach(players, id: \.id) { player in
+                        PlayerRowView(player: player)
+                    }
                 }
             }
         }
+        .frame(height: 180)
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 14)

@@ -13,6 +13,7 @@ struct LobbyView: View {
     @State private var name: String = ""
     @State private var didJoin = false
     private let audioService = DIContainer.shared.audioService
+    @State private var showChat = false
     
     @Environment(\.dismiss) private var dismiss
     var body: some View {
@@ -47,12 +48,17 @@ struct LobbyView: View {
                         LobbyPlayersView(
                             vm: vm,
                             audioService: DIContainer.shared.audioService,
-                            leaderboardService: DIContainer.shared.leaderboardService
+                            leaderboardService: DIContainer.shared.leaderboardService,
+                            isChatVisible: showChat,
+                            onChatTap: { showChat.toggle() }
                         )
                         .transition(.move(edge: .trailing).combined(with: .opacity))
                     }
                     
                     Spacer()
+                }
+                .onChange(of: showChat) { _ in
+                    withAnimation(.easeOut(duration: 0.25)) { }
                 }
                 .navigationDestination(isPresented: $vm.gameStarted) {
                     GameView(onLeaveToMainMenu: {

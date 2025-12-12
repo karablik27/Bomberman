@@ -18,11 +18,16 @@ struct LobbyChatView: View {
             chatMessagesList
             chatInputField
         }
-        .background(Color.black.opacity(0.4))
+        .background(Color.black.opacity(0.95))
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                .stroke(Color.white.opacity(0.85), lineWidth: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.black.opacity(0.6), lineWidth: 1)
+                .padding(1)
         )
     }
     
@@ -50,7 +55,7 @@ struct LobbyChatView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
             }
-            .frame(height: 200)
+            .frame(height: 120)
             .background(Color.black.opacity(0.2))
             .onChange(of: vm.chatMessages.count) { _ in
                 scrollToLast(proxy: proxy)

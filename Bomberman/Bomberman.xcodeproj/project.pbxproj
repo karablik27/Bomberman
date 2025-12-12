@@ -10,9 +10,28 @@
 		9091BC8A2EE87FE900712408 /* Bomberman.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bomberman.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		90A09E602EECCA7900294A15 /* Exceptions for "Bomberman" folder in "Bomberman" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Views/MainBGAnimation/MenuDirection.swift,
+				Views/MainBGAnimation/MenuGameView.swift,
+				Views/MainBGAnimation/MenuGameViewModel.swift,
+				Views/MainBGAnimation/MenuMapGenerator.swift,
+				Views/MainBGAnimation/MenuPlayer.swift,
+				Views/MainBGAnimation/MenuPlayerAnimation.swift,
+				Views/MainBGAnimation/MenuTile.swift,
+			);
+			target = 9091BC892EE87FE900712408 /* Bomberman */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9091BC8C2EE87FE900712408 /* Bomberman */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				90A09E602EECCA7900294A15 /* Exceptions for "Bomberman" folder in "Bomberman" target */,
+			);
 			path = Bomberman;
 			sourceTree = "<group>";
 		};
@@ -251,7 +270,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 95JWV3FJJ7;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -283,7 +302,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 95JWV3FJJ7;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
