@@ -317,8 +317,7 @@ struct GameView: View {
                 }
             }
             
-            // Подсветка траектории взрыва
-            if GameSettings.shared.showExplosionTrajectory {
+            if vm.showExplosionTrajectory {
                 ForEach(vm.bombs.indices, id: \.self) { index in
                     let bomb = vm.bombs[index]
                     ExplosionTrajectoryView(

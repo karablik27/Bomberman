@@ -16,6 +16,7 @@ final class DIContainer {
     let gameStateStore: GameStateStore
     let audioService: AudioServiceProtocol
     let leaderboardService: LeaderboardServiceProtocol
+    let gameSettings: GameSettingsProtocol
 
     private init() {
         self.webSocketService = WebSocketService(url: AppConfig.webSocketURL)
@@ -23,5 +24,6 @@ final class DIContainer {
         self.gameStateStore = GameStateStore(ws: webSocketService, decoder: eventDecoder)
         self.audioService = AudioService()
         self.leaderboardService = LeaderboardService()
+        self.gameSettings = GameSettings() 
     }
 }

@@ -13,6 +13,7 @@ struct LobbyPlayersView: View {
 
     private let audioService: AudioServiceProtocol
     private let leaderboardService: LeaderboardServiceProtocol
+    private let gameSettings: GameSettingsProtocol
     let onChatTap: () -> Void
     let isChatVisible: Bool
 
@@ -22,12 +23,14 @@ struct LobbyPlayersView: View {
         vm: LobbyViewModel,
         audioService: AudioServiceProtocol,
         leaderboardService: LeaderboardServiceProtocol,
+        gameSettings: GameSettingsProtocol,
         isChatVisible: Bool,
         onChatTap: @escaping () -> Void
     ) {
         self.vm = vm
         self.audioService = audioService
         self.leaderboardService = leaderboardService
+        self.gameSettings = gameSettings  
         self.isChatVisible = isChatVisible
         self.onChatTap = onChatTap
     }
@@ -67,6 +70,23 @@ struct LobbyPlayersView: View {
                             .resizable()
                             .frame(width: 24, height: 24)
                             .foregroundColor(.yellow)
+                    }
+                    
+                    Button {
+                        audioService.playButtonSound()
+                        gameSettings.showExplosionTrajectory.toggle()
+                    } label: {
+                        Image(
+                            gameSettings.showExplosionTrajectory
+                            ? "trajectory_on"
+                            : "trajectory_off"
+                        )
+                        .renderingMode(.template)
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(
+                            gameSettings.showExplosionTrajectory ? .green : .red
+                        )
                     }
 
                     // будущие кнопки
