@@ -7,7 +7,11 @@
 
 import SwiftUI
 
+import SwiftUI
+
 struct KenneyBlocksBackground: View {
+
+    let style: BackgroundDropStyle
     @StateObject private var animator = BlocksAnimator()
 
     var body: some View {
@@ -24,6 +28,7 @@ struct KenneyBlocksBackground: View {
             }
             .onAppear {
                 animator.reset()
+                animator.configure(style: style)
                 animator.setScreenSize(geo.size)
                 animator.start()
             }

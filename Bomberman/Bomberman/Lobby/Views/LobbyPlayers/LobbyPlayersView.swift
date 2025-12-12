@@ -8,15 +8,14 @@
 import SwiftUI
 
 struct LobbyPlayersView: View {
-    
+
     @ObservedObject var vm: LobbyViewModel
 
     private let audioService: AudioServiceProtocol
     private let leaderboardService: LeaderboardServiceProtocol
-    
-    @State private var showLeaderboard = false
-    @State private var showExplosionTrajectory = GameSettings.shared.showExplosionTrajectory
-    
+
+    @State private var showLeaderboardScreen = false
+
     init(
         vm: LobbyViewModel,
         audioService: AudioServiceProtocol,
@@ -26,77 +25,58 @@ struct LobbyPlayersView: View {
         self.audioService = audioService
         self.leaderboardService = leaderboardService
     }
-    
+
     var body: some View {
         VStack(spacing: 20) {
-            
+
             VStack(spacing: 6) {
                 Text("LOBBY")
                     .font(.kenneyFuture(size: 46))
                     .foregroundColor(.white)
                     .shadow(color: .white.opacity(0.9), radius: 10)
-                
+
                 HStack(spacing: 20) {
                     Text("Players: \(vm.players.count)/4")
                         .font(.kenneyFuture(size: 20))
                         .foregroundColor(.white.opacity(0.75))
-                    
+
                     Button {
                         audioService.playButtonSound()
-                        showLeaderboard.toggle()
+                        showLeaderboardScreen = true
                     } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "trophy.fill")
-                                .font(.system(size: 16))
-                            Text("ЛИДЕРБОРД")
-                                .font(.kenneyFuture(size: 16))
-                        }
-                        .foregroundColor(.yellow)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.yellow.opacity(0.2))
-                        )
+                        Image("leaderboard")
+                            .renderingMode(.template)
+                            .resizable()
+                            .frame(width: 26, height: 26)
+                            .foregroundColor(.yellow)
+                            .padding(10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.yellow.opacity(0.2))
+                            )
                     }
                 }
             }
             .padding(.top, 40)
-            
-            if showLeaderboard {
-                LeaderboardView()
-                    .padding(.horizontal, 22)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-            }
-            
+
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 18) {
                     ForEach(vm.players, id: \.id) { player in
                         HStack(spacing: 14) {
-                            
                             Image("PlayerIcon")
                                 .resizable()
                                 .frame(width: 36, height: 36)
-                            
+
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(player.name)
                                     .font(.kenneyFuture(size: 22))
                                     .foregroundColor(.white)
-                                
-                                HStack(spacing: 8) {
-                                    Text(player.ready ? "READY" : "NOT READY")
-                                        .font(.kenneyFuture(size: 16))
-                                        .foregroundColor(player.ready ? .green : .yellow)
-                                    
-                                    let wins = leaderboardService.getWinCount(for: player.name)
-                                    if wins > 0 {
-                                        Text("• \(wins)W")
-                                            .font(.kenneyFuture(size: 14))
-                                            .foregroundColor(.yellow.opacity(0.8))
-                                    }
-                                }
+
+                                Text(player.ready ? "READY" : "NOT READY")
+                                    .font(.kenneyFuture(size: 16))
+                                    .foregroundColor(player.ready ? .green : .yellow)
                             }
-                            
+
                             Spacer()
                         }
                         .playerCard()
@@ -105,10 +85,9 @@ struct LobbyPlayersView: View {
                 }
                 .padding(.top, 12)
             }
-            
+
             Spacer()
-            
-            
+
             Button {
                 audioService.playReadySound()
                 vm.toggleReady()
@@ -121,24 +100,21 @@ struct LobbyPlayersView: View {
             }
             .gameButtonStyle(color: vm.isReady ? .gray : .green)
             .padding(.horizontal, 40)
-            .padding(.top, 10)
-            
+
             Button {
                 vm.leaveLobby()
             } label: {
                 Text("LEAVE")
                     .font(.kenneyFuture(size: 22))
                     .foregroundColor(.red)
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 24)
             }
-            .gameButtonFrame()
-            .padding(.top, 8)
-            
-            
-            Spacer().frame(height: 40)
+            .padding(.bottom, 30)
         }
-        .animation(.easeInOut(duration: 0.3), value: showLeaderboard)
-        .animation(.easeInOut(duration: 0.2), value: showExplosionTrajectory)
+        .navigationDestination(isPresented: $showLeaderboardScreen) {
+            LeaderboardBackView(
+                audioService: audioService,
+                leaderboardService: leaderboardService
+            )
+        }
     }
 }

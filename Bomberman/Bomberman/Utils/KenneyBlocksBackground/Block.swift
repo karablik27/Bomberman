@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+enum BlockKind {
+    case block
+    case trophy
+}
+
 struct Block: Identifiable {
     let id = UUID()
     let imageName: String
@@ -20,5 +25,6 @@ struct Block: Identifiable {
     var isSettled: Bool = false
     var isFrozen: Bool = false
     var touchCount: Int = 0
+    let kind: BlockKind 
 }
 

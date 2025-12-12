@@ -11,8 +11,7 @@ import Combine
 final class BlocksAnimator: ObservableObject {
 
     @MainActor @Published var blocks: [Block] = []
-
-    let blockImages = ["block_01", "block_02", "block_03", "block_04"]
+    private var images: [String] = []
 
     var spawnTask: Task<Void, Never>?
     var updateTask: Task<Void, Never>?
@@ -24,20 +23,26 @@ final class BlocksAnimator: ObservableObject {
             await engine.setScreenSize(size)
         }
     }
+    
+    func configure(style: BackgroundDropStyle) {
+        self.images = style.images
+    }
 
     func start() {
         stop()
 
         spawnTask = Task.detached(priority: .background) { [weak self, engine] in
             guard let self else { return }
+
             while !Task.isCancelled {
-                await engine.spawnBlock(images: self.blockImages)
+                await engine.spawnBlock(images: self.images)
                 try? await Task.sleep(for: .milliseconds(250))
             }
         }
 
         updateTask = Task.detached(priority: .userInitiated) { [weak self, engine] in
             guard let self else { return }
+
             while !Task.isCancelled {
                 let snapshot = await engine.updateAndGetSnapshot()
 
