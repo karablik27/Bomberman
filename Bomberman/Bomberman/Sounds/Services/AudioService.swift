@@ -50,16 +50,15 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var wasPlayingBeforeBackground = false
     
-    private var customMusicURL: URL? {
+    private var customMusicBookmarkData: Data? {
         get {
-            guard let urlString = UserDefaults.standard.string(forKey: "customMusicURL") else { return nil }
-            return URL(string: urlString)
+            return UserDefaults.standard.data(forKey: "customMusicBookmark")
         }
         set {
-            if let url = newValue {
-                UserDefaults.standard.set(url.absoluteString, forKey: "customMusicURL")
+            if let data = newValue {
+                UserDefaults.standard.set(data, forKey: "customMusicBookmark")
             } else {
-                UserDefaults.standard.removeObject(forKey: "customMusicURL")
+                UserDefaults.standard.removeObject(forKey: "customMusicBookmark")
             }
         }
     }
@@ -70,12 +69,7 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
         setupAppStateObservers()
     }
     
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
-    
     private func setupAppStateObservers() {
-        // Подписываемся на уведомления о смене состояния приложения
         NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)
             .sink { [weak self] _ in
                 Task { @MainActor in
@@ -94,7 +88,6 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
     }
     
     private func handleAppWillResignActive() {
-        // Сохраняем состояние воспроизведения перед уходом в фон
         wasPlayingBeforeBackground = audioPlayer?.isPlaying ?? false
         if wasPlayingBeforeBackground {
             pauseMusic()
@@ -102,7 +95,6 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
     }
     
     private func handleAppDidBecomeActive() {
-        // Возобновляем музыку, если она играла до ухода в фон и включена
         if wasPlayingBeforeBackground && isMusicEnabled {
             resumeMusic()
         }
@@ -127,19 +119,24 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
         }
     }
     
-    private func getMusicURL() -> URL? {
-        if isUsingCustomMusic, let customURL = customMusicURL {
-            // Проверяем, что файл существует
-            if FileManager.default.fileExists(atPath: customURL.path) {
-                return customURL
-            } else {
-                // Если файл не найден, сбрасываем на дефолтную
-                print("Кастомный файл не найден, переключаемся на дефолтную музыку")
-                isUsingCustomMusic = false
-                customMusicFileName = nil
-                UserDefaults.standard.set(false, forKey: "isUsingCustomMusic")
-                UserDefaults.standard.removeObject(forKey: "customMusicFileName")
+    private func getLobbyMusicURL() -> URL? {
+        if isUsingCustomMusic {
+            let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let possibleExtensions = ["mp3", "m4a", "aac", "wav"]
+            
+            for ext in possibleExtensions {
+                let destinationURL = documentsPath.appendingPathComponent("customLobbyMusic.\(ext)")
+                if FileManager.default.fileExists(atPath: destinationURL.path) {
+                    return destinationURL
+                }
             }
+            
+            print("Кастомный файл не найден, переключаемся на дефолтную музыку")
+            isUsingCustomMusic = false
+            customMusicFileName = nil
+            UserDefaults.standard.set(false, forKey: "isUsingCustomMusic")
+            UserDefaults.standard.removeObject(forKey: "customMusicFileName")
+            UserDefaults.standard.removeObject(forKey: "customMusicBookmark")
         }
         return Bundle.main.url(forResource: "Lobby", withExtension: "mp3")
     }
@@ -151,8 +148,8 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
     func playLobbyMusic() {
         guard isMusicEnabled else { return }
         
-        guard let url = getMusicURL() else {
-            print("Не удалось найти файл музыки")
+        guard let url = getLobbyMusicURL() else {
+            print("Не удалось найти файл музыки лобби")
             return
         }
         
@@ -163,7 +160,7 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
             audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {
-            print("Ошибка воспроизведения музыки: \(error)")
+            print("Ошибка воспроизведения музыки лобби: \(error)")
         }
     }
     
@@ -197,6 +194,7 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
     
     func resumeMusic() {
         if audioPlayer == nil {
+            // Если плеер не создан, запускаем музыку лобби по умолчанию
             playLobbyMusic()
         } else {
             audioPlayer?.play()
@@ -204,27 +202,38 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
     }
     
     func setCustomMusic(url: URL) throws {
-        // Получаем имя файла без расширения для отображения
+        // Получаем доступ к security-scoped resource
+        guard url.startAccessingSecurityScopedResource() else {
+            throw NSError(domain: "AudioService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Не удалось получить доступ к файлу"])
+        }
+        
+        defer {
+            url.stopAccessingSecurityScopedResource()
+        }
+        
         let fileName = url.deletingPathExtension().lastPathComponent
         
-        // Копируем файл в Documents директорию
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let destinationURL = documentsPath.appendingPathComponent("customLobbyMusic.\(url.pathExtension)")
         
-        // Удаляем старый файл, если существует
-        try? FileManager.default.removeItem(at: destinationURL)
+        let possibleExtensions = ["mp3", "m4a", "aac", "wav"]
+        for ext in possibleExtensions {
+            let oldURL = documentsPath.appendingPathComponent("customLobbyMusic.\(ext)")
+            try? FileManager.default.removeItem(at: oldURL)
+        }
         
         // Копируем новый файл
         try FileManager.default.copyItem(at: url, to: destinationURL)
         
-        // Сохраняем путь к кастомной музыке и имя файла
-        customMusicURL = destinationURL
+        let bookmarkData = try url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+        customMusicBookmarkData = bookmarkData
+        
+        // Сохраняем состояние
         isUsingCustomMusic = true
         customMusicFileName = fileName
         UserDefaults.standard.set(true, forKey: "isUsingCustomMusic")
         UserDefaults.standard.set(fileName, forKey: "customMusicFileName")
         
-        // Перезапускаем музыку, если она играет
         if isMusicEnabled {
             stopMusic()
             playLobbyMusic()
@@ -232,18 +241,20 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
     }
     
     func useDefaultMusic() {
-        // Удаляем кастомную музыку
-        if let customURL = customMusicURL {
-            try? FileManager.default.removeItem(at: customURL)
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let possibleExtensions = ["mp3", "m4a", "aac", "wav"]
+        for ext in possibleExtensions {
+            let url = documentsPath.appendingPathComponent("customLobbyMusic.\(ext)")
+            try? FileManager.default.removeItem(at: url)
         }
         
-        customMusicURL = nil
+        customMusicBookmarkData = nil
         isUsingCustomMusic = false
         customMusicFileName = nil
         UserDefaults.standard.set(false, forKey: "isUsingCustomMusic")
         UserDefaults.standard.removeObject(forKey: "customMusicFileName")
+        UserDefaults.standard.removeObject(forKey: "customMusicBookmark")
         
-        // Перезапускаем музыку, если она играет
         if isMusicEnabled {
             stopMusic()
             playLobbyMusic()
@@ -251,7 +262,6 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
     }
     
     // MARK: - Звуки эффектов
-    
     private func playSoundEffect(filename: String) {
         guard isEffectsEnabled else { return }
         
