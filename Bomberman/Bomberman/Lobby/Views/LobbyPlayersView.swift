@@ -106,42 +106,6 @@ struct LobbyPlayersView: View {
                 .padding(.top, 12)
             }
             
-            // Настройка траектории взрыва
-            HStack {
-                Image(systemName: "sparkles")
-                    .foregroundColor(.yellow)
-                    .font(.system(size: 18))
-                
-                Text("Траектория взрыва")
-                    .font(.kenneyFuture(size: 18))
-                    .foregroundColor(.white)
-                
-                Spacer()
-                
-                Button {
-                    audioService.playButtonSound()
-                    showExplosionTrajectory.toggle()
-                    GameSettings.shared.showExplosionTrajectory = showExplosionTrajectory
-                } label: {
-                    Text(showExplosionTrajectory ? "Вкл." : "Выкл.")
-                        .font(.kenneyFuture(size: 16))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(showExplosionTrajectory ? Color.green.opacity(0.7) : Color.gray.opacity(0.7))
-                        )
-                }
-            }
-            .padding(.horizontal, 22)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.white.opacity(0.1))
-            )
-            .padding(.horizontal, 22)
-            
             Spacer()
             
             
