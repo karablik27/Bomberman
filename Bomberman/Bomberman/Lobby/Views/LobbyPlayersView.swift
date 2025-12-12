@@ -11,6 +11,7 @@ struct LobbyPlayersView: View {
     
     private let audioService = DIContainer.shared.audioService
     @ObservedObject var vm: LobbyViewModel
+    @State private var showLeaderboard = false
     
     var body: some View {
         VStack(spacing: 20) {
@@ -21,11 +22,38 @@ struct LobbyPlayersView: View {
                     .foregroundColor(.white)
                     .shadow(color: .white.opacity(0.9), radius: 10)
                 
-                Text("Players: \(vm.players.count)/4")
-                    .font(.kenneyFuture(size: 20))
-                    .foregroundColor(.white.opacity(0.75))
+                HStack(spacing: 20) {
+                    Text("Players: \(vm.players.count)/4")
+                        .font(.kenneyFuture(size: 20))
+                        .foregroundColor(.white.opacity(0.75))
+                    
+                    Button {
+                        audioService.playButtonSound()
+                        showLeaderboard.toggle()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "trophy.fill")
+                                .font(.system(size: 16))
+                            Text("ЛИДЕРБОРД")
+                                .font(.kenneyFuture(size: 16))
+                        }
+                        .foregroundColor(.yellow)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.yellow.opacity(0.2))
+                        )
+                    }
+                }
             }
             .padding(.top, 40)
+            
+            if showLeaderboard {
+                LeaderboardView()
+                    .padding(.horizontal, 22)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 18) {
@@ -41,9 +69,18 @@ struct LobbyPlayersView: View {
                                     .font(.kenneyFuture(size: 22))
                                     .foregroundColor(.white)
                                 
-                                Text(player.ready ? "READY" : "NOT READY")
-                                    .font(.kenneyFuture(size: 16))
-                                    .foregroundColor(player.ready ? .green : .yellow)
+                                HStack(spacing: 8) {
+                                    Text(player.ready ? "READY" : "NOT READY")
+                                        .font(.kenneyFuture(size: 16))
+                                        .foregroundColor(player.ready ? .green : .yellow)
+                                    
+                                    let wins = LeaderboardService.shared.getWinCount(for: player.name)
+                                    if wins > 0 {
+                                        Text("• \(wins)W")
+                                            .font(.kenneyFuture(size: 14))
+                                            .foregroundColor(.yellow.opacity(0.8))
+                                    }
+                                }
                             }
                             
                             Spacer()
@@ -87,5 +124,6 @@ struct LobbyPlayersView: View {
             
             Spacer().frame(height: 40)
         }
+        .animation(.easeInOut(duration: 0.3), value: showLeaderboard)
     }
 }

@@ -26,6 +26,7 @@ final class GameViewModel: ObservableObject {
     
     private var previousPositions: [String: (x: Int, y: Int)] = [:]
     private var previousExplosions: Set<String> = []
+    private var lastWinner: String?
     
     private let store: GameStateStore
     private let audioService: AudioServiceProtocol
@@ -51,10 +52,19 @@ final class GameViewModel: ObservableObject {
                 if state.state == .waiting && self.gameStatus != .waiting {
                     self.playerDirections.removeAll()
                     self.previousPositions.removeAll()
+                    self.previousExplosions.removeAll()
+                    self.lastWinner = nil
                 }
                 
                 self.updatePlayerDirections(newPlayers: state.players)
                 self.detectNewExplosions(newExplosions: state.explosions)
+                
+                if state.state == .gameOver, let winner = state.winner, winner != "НИЧЬЯ" {
+                    if self.lastWinner != winner {
+                        self.lastWinner = winner
+                        LeaderboardService.shared.recordWin(for: winner)
+                    }
+                }
                 
                 self.gameState = state
                 self.gameStatus = state.state
