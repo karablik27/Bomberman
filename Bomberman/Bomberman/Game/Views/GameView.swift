@@ -165,6 +165,19 @@ struct GameView: View {
                 }
             }
             
+            // Подсветка траектории взрыва
+            if GameSettings.shared.showExplosionTrajectory {
+                ForEach(vm.bombs.indices, id: \.self) { index in
+                    let bomb = vm.bombs[index]
+                    ExplosionTrajectoryView(
+                        bombX: bomb.x,
+                        bombY: bomb.y,
+                        map: vm.map,
+                        tileSize: tileSize
+                    )
+                }
+            }
+            
             ForEach(vm.bombs.indices, id: \.self) { index in
                 let bomb = vm.bombs[index]
                 BombView()
