@@ -4,6 +4,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @State private var showSoundSettings = false
     @State private var showMusicSettings = false
+    @State private var showInformation = false
     private let audioService = DIContainer.shared.audioService
     
     var body: some View {
@@ -35,7 +36,12 @@ struct SettingsView: View {
                             SettingRow(title: "Музыка", icon: "MusicIcon")
                         }
                         
-                        SettingRow(title: "Информация", icon: "InformationIcon")
+                        Button(action: {
+                            audioService.playButtonSound()
+                            showInformation = true
+                        }) {
+                            SettingRow(title: "Как играть", icon: "InformationIcon")
+                        }
                     }
                     .padding(.horizontal, 30)
                     
@@ -64,6 +70,9 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showMusicSettings) {
                 MusicSettingsView()
+            }
+            .sheet(isPresented: $showInformation) {
+                InformationView()
             }
         }
     }
