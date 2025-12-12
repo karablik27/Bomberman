@@ -31,17 +31,24 @@ final class GameViewModel: ObservableObject {
     private let store: GameStateStore
     private let audioService: AudioServiceProtocol
     private let leaderboardService: LeaderboardServiceProtocol
+    private let gameSettings: GameSettingsProtocol
     private var cancellables = Set<AnyCancellable>()
     
     init(
         store: GameStateStore = DIContainer.shared.gameStateStore,
         audioService: AudioServiceProtocol = DIContainer.shared.audioService,
-        leaderboardService: LeaderboardServiceProtocol = DIContainer.shared.leaderboardService
+        leaderboardService: LeaderboardServiceProtocol = DIContainer.shared.leaderboardService,
+        gameSettings: GameSettingsProtocol = DIContainer.shared.gameSettings
     ) {
         self.store = store
         self.audioService = audioService
         self.leaderboardService = leaderboardService
+        self.gameSettings = gameSettings
         bind()
+    }
+    
+    var showExplosionTrajectory: Bool {
+        gameSettings.showExplosionTrajectory
     }
     
     private func bind() {

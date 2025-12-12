@@ -7,13 +7,13 @@
 
 import Foundation
 
-class GameSettings {
-    static let shared = GameSettings()
-    
+protocol GameSettingsProtocol: AnyObject {
+    var showExplosionTrajectory: Bool { get set }
+}
+
+final class GameSettings: GameSettingsProtocol {
     private let explosionTrajectoryKey = "showExplosionTrajectory"
-    
-    private init() {}
-    
+
     var showExplosionTrajectory: Bool {
         get {
             UserDefaults.standard.object(forKey: explosionTrajectoryKey) as? Bool ?? true

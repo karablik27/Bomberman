@@ -49,6 +49,7 @@ struct LobbyView: View {
                             vm: vm,
                             audioService: DIContainer.shared.audioService,
                             leaderboardService: DIContainer.shared.leaderboardService,
+                            gameSettings: DIContainer.shared.gameSettings,
                             isChatVisible: showChat,
                             onChatTap: { showChat.toggle() }
                         )
