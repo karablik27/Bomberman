@@ -44,9 +44,11 @@ final class GameStateStore: ObservableObject {
 
         case .gameState(let state):
             gameState = state
+            
+        case .chatMessage(let message):
+            NotificationCenter.default.post(name: NSNotification.Name("ChatMessageReceived"), object: message)
         }
     }
-
     func connect() { ws.connect() }
     
     func disconnect() {

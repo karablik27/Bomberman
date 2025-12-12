@@ -23,6 +23,9 @@ ENDGAME_BOMB_CHANCE = 0.004
 # Глобальный словарь для хранения загруженных карт
 AVAILABLE_MAPS = {}
 
+# Храним последние сообщения
+CHAT_MESSAGES = []
+
 def load_maps():
     """Загружает все карты из папки /maps."""
     maps_dir = "maps"
@@ -318,7 +321,29 @@ async def handler(websocket):
         if client_type == "player":
             async for message in websocket:
                 action = json.loads(message)
-                GAME.handle_input(client_id, action)
+
+                if action.get("type") == "chat_message":
+                    player_name = GAME.players.get(client_id).name if client_id in GAME.players else "Unknown"
+                    message_data = {
+                        "id": str(uuid.uuid4()),
+                        "playerID": client_id,
+                        "playerName": player_name,
+                        "message": action.get("message", ""),
+                        "timestamp": time.time()
+                    }
+                    CHAT_MESSAGES.append(message_data)
+                    
+                    # Ограничиваем количество сообщений
+                    if len(CHAT_MESSAGES) > 100:
+                        CHAT_MESSAGES.pop(0)
+                    
+                    # Отправляем всем клиентам
+                    chat_message = json.dumps({"type": "chat_message", "payload": message_data})
+                    all_clients = list(PLAYER_CLIENTS.values()) + list(SPECTATOR_CLIENTS)
+                    await asyncio.gather(*[client.send(chat_message) for client in all_clients], return_exceptions=True)
+                else:
+                    # Остальная логика для игровых действий
+                    GAME.handle_input(client_id, action)
         else:
             await websocket.wait_closed()
 

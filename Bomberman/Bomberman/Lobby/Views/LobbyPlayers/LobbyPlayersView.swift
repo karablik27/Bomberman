@@ -79,6 +79,9 @@ struct LobbyPlayersView: View {
 
             PlayersPanelView(players: vm.players)
                 .padding(.horizontal, 24)
+            
+            LobbyChatView(vm: vm)
+                .padding(.horizontal, 24)
 
             Spacer()
 
