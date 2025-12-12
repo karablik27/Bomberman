@@ -60,7 +60,11 @@ final class LobbyViewModel: ObservableObject {
                         self.gameStarted = true
                     }
                 case .waiting:
-                    self.gameStarted = false
+                    if self.gameStarted {
+                        break
+                    } else {
+                        self.gameStarted = false
+                    }
                 case .gameOver:
                     break
                 }
