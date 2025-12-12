@@ -13,6 +13,7 @@ struct GameView: View {
     @State private var lastScale: CGFloat = 1.0
     @GestureState private var magnifyBy: CGFloat = 1.0
     @State private var panOffset: CGSize = .zero
+    @State private var showDeathOverlay = false
     @GestureState private var panTranslation: CGSize = .zero
     
     @StateObject private var vm = GameViewModel()
@@ -46,9 +47,18 @@ struct GameView: View {
                         .padding(.bottom, 30)
                 }
                 
+                if !vm.isAlive && vm.isPlaying && showDeathOverlay {
+                    defeatOverlay
+                }
+
                 if vm.isGameOver {
                     gameOverOverlay
                 }
+            }
+        }
+        .onChange(of: vm.isAlive) { alive in
+            if !alive && vm.isPlaying {
+                showDeathOverlay = true
             }
         }
         .navigationBarHidden(true)
@@ -472,6 +482,73 @@ struct GameView: View {
                 }
                 .padding(.top, 20)
             }
+        }
+    }
+    
+    private var defeatOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.85)
+                .ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                Text("YOU DIED")
+                    .font(.kenneyFuture(size: 42))
+                    .foregroundColor(.red)
+
+                Text("You can keep watching or leave the match")
+                    .font(.kenneyFuture(size: 18))
+                    .foregroundColor(.white.opacity(0.8))
+                    .multilineTextAlignment(.center)
+
+                VStack(spacing: 14) {
+
+                    Button {
+                        audioService.playButtonSound()
+                        showDeathOverlay = false
+                    } label: {
+                        Text("WATCH GAME")
+                            .font(.kenneyFuture(size: 22))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color.gray.opacity(0.8))
+                            .cornerRadius(14)
+                    }
+
+                    Button {
+                        audioService.playButtonSound()
+                        vm.leaveGame()
+                        dismiss()
+                    } label: {
+                        Text("BACK TO LOBBY")
+                            .font(.kenneyFuture(size: 22))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color.bombermanGreen)
+                            .cornerRadius(14)
+                    }
+
+                    Button {
+                        audioService.playButtonSound()
+                        vm.leaveGame()
+                        if let onLeaveToMainMenu {
+                            onLeaveToMainMenu()
+                        } else {
+                            dismiss()
+                        }
+                    } label: {
+                        Text("BACK TO MENU")
+                            .font(.kenneyFuture(size: 22))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color.bombermanRed)
+                            .cornerRadius(14)
+                    }
+                }
+            }
+            .padding(.horizontal, 40)
         }
     }
 }

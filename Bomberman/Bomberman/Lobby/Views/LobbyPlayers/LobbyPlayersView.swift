@@ -13,18 +13,25 @@ struct LobbyPlayersView: View {
 
     private let audioService: AudioServiceProtocol
     private let leaderboardService: LeaderboardServiceProtocol
+    let onChatTap: () -> Void
+    let isChatVisible: Bool
 
     @State private var showLeaderboardScreen = false
 
     init(
         vm: LobbyViewModel,
         audioService: AudioServiceProtocol,
-        leaderboardService: LeaderboardServiceProtocol
+        leaderboardService: LeaderboardServiceProtocol,
+        isChatVisible: Bool,
+        onChatTap: @escaping () -> Void
     ) {
         self.vm = vm
         self.audioService = audioService
         self.leaderboardService = leaderboardService
+        self.isChatVisible = isChatVisible
+        self.onChatTap = onChatTap
     }
+
 
     var body: some View {
         VStack(spacing: 20) {
@@ -45,6 +52,17 @@ struct LobbyPlayersView: View {
                         showLeaderboardScreen = true
                     } label: {
                         Image("leaderboard")
+                            .renderingMode(.template)
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(.yellow)
+                    }
+                    
+                    Button {
+                        audioService.playButtonSound()
+                        onChatTap()
+                    } label: {
+                        Image("chat")
                             .renderingMode(.template)
                             .resizable()
                             .frame(width: 24, height: 24)
@@ -80,8 +98,11 @@ struct LobbyPlayersView: View {
             PlayersPanelView(players: vm.players)
                 .padding(.horizontal, 24)
             
-            LobbyChatView(vm: vm)
-                .padding(.horizontal, 24)
+            if isChatVisible {
+                LobbyChatView(vm: vm)
+                    .padding(.horizontal, 24)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
 
             Spacer()
 
