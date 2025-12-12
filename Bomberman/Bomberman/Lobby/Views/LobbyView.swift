@@ -44,8 +44,12 @@ struct LobbyView: View {
                         LobbyEnterView(vm: vm)
                             .transition(.move(edge: .leading).combined(with: .opacity))
                     } else {
-                        LobbyPlayersView(vm: vm)
-                            .transition(.move(edge: .trailing).combined(with: .opacity))
+                        LobbyPlayersView(
+                            vm: vm,
+                            audioService: DIContainer.shared.audioService,
+                            leaderboardService: DIContainer.shared.leaderboardService
+                        )
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
                     }
                     
                     Spacer()
