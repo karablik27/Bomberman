@@ -39,7 +39,8 @@ actor Engine {
             rotation: Double.random(in: 0...360),
             velocityY: CGFloat.random(in: 2...6),
             velocityX: CGFloat.random(in: -1.5...1.5),
-            rotationSpeed: Double.random(in: -2...2)
+            rotationSpeed: Double.random(in: -2...2),
+            kind: .block
         )
 
         blocks.append(block)
@@ -49,8 +50,6 @@ actor Engine {
         update()
         return blocks
     }
-
-    // ======= НИЖЕ ТВОЙ КОД ФИЗИКИ — НЕ РЕЖЕМ, ЛОГИКА ТА ЖЕ =======
 
     private func update() {
         guard screenSize != .zero else { return }

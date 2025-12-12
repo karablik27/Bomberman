@@ -18,7 +18,7 @@ struct LobbyView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                KenneyBlocksBackground()
+                KenneyBlocksBackground(style: .blocks)
                 
                 VStack {
                     HStack {
