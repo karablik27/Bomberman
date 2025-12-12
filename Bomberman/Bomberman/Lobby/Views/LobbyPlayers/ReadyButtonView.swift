@@ -5,6 +5,8 @@
 //  Created by Karabelnikov Stepan on 12.12.2025.
 //
 
+import SwiftUI
+
 struct ReadyButtonView: View {
 
     let isReady: Bool
