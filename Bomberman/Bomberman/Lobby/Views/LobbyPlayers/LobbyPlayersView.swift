@@ -115,8 +115,11 @@ struct LobbyPlayersView: View {
 
             .padding(.top, 40)
 
-            PlayersPanelView(players: vm.players)
-                .padding(.horizontal, 24)
+            PlayersPanelView(
+                players: vm.players,
+                playerSkins: vm.playerSkins
+            )
+            .padding(.horizontal, 24)
             
             if isChatVisible {
                 LobbyChatView(vm: vm)

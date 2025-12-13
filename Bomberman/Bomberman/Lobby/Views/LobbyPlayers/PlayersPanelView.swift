@@ -10,6 +10,7 @@ import SwiftUI
 struct PlayersPanelView: View {
 
     let players: [Player]
+    let playerSkins: [String: PlayerSkin]  
 
     var body: some View {
         VStack(spacing: 12) {
@@ -30,7 +31,10 @@ struct PlayersPanelView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 10) {
                     ForEach(players, id: \.id) { player in
-                        PlayerRowView(player: player)
+                        PlayerRowView(
+                            player: player,
+                            skin: playerSkins[player.id] ?? .blue
+                        )
                     }
                 }
             }

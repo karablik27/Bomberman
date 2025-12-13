@@ -10,13 +10,15 @@ import SwiftUI
 struct PlayerRowView: View {
 
     let player: Player
-
+    let skin: PlayerSkin
+    
     var body: some View {
         HStack(spacing: 12) {
 
-            Image("PlayerIcon")
+            Image(skin.iconName)
                 .resizable()
                 .frame(width: 34, height: 34)
+
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(player.name)

@@ -56,10 +56,9 @@ struct MenuGameView: View {
                     }
                 }
                 .transaction { tx in
-                    tx.animation = nil   // ⛔️ НИКАКИХ анимаций тайлов
+                    tx.animation = nil
                 }
 
-                // 🧍 ИГРОК (всегда по центру)
                 Image(currentPlayerSprite)
                     .resizable()
                     .frame(width: tileSize, height: tileSize)
@@ -68,7 +67,6 @@ struct MenuGameView: View {
                         y: geo.size.height / 2
                     )
 
-                // 💣 БОМБЫ
                 ForEach(vm.bombs.indices, id: \.self) { i in
                     let dx = CGFloat(vm.bombs[i].x) - smoothX
                     let dy = CGFloat(vm.bombs[i].y) - smoothY
@@ -82,7 +80,6 @@ struct MenuGameView: View {
                         )
                 }
 
-                // 💥 ВЗРЫВЫ
                 ForEach(vm.explosions.indices, id: \.self) { i in
                     let dx = CGFloat(vm.explosions[i].x) - smoothX
                     let dy = CGFloat(vm.explosions[i].y) - smoothY
@@ -97,7 +94,6 @@ struct MenuGameView: View {
                 }
             }
             .onAppear {
-                // стартовая позиция камеры
                 smoothX = targetX
                 smoothY = targetY
             }

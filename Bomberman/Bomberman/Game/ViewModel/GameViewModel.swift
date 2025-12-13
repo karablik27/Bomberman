@@ -10,61 +10,73 @@ import Combine
 
 @MainActor
 final class GameViewModel: ObservableObject {
-    
+
+    // MARK: - Server state
+
     @Published var gameState: GameState?
     @Published var myID: String?
     @Published var gameStatus: GameStatus = .waiting
     @Published var winner: String?
     @Published var timeRemaining: Double?
-    
+
     @Published var map: [[String]] = []
     @Published var players: [Player] = []
     @Published var bombs: [Bomb] = []
     @Published var explosions: [Explosion] = []
-    
+
+    // MARK: - Local UI state
+
     @Published var playerDirections: [String: PlayerDirection] = [:]
-    
+
+    private let mySkin: PlayerSkin
+
     private var previousPositions: [String: (x: Int, y: Int)] = [:]
     private var previousExplosions: Set<String> = []
     private var lastWinner: String?
-    
+
     private let store: GameStateStore
     private let audioService: AudioServiceProtocol
     private let leaderboardService: LeaderboardServiceProtocol
     private let gameSettings: GameSettingsProtocol
     private var cancellables = Set<AnyCancellable>()
-    
+
+    // MARK: - Init
+
     init(
         store: GameStateStore = DIContainer.shared.gameStateStore,
         audioService: AudioServiceProtocol = DIContainer.shared.audioService,
         leaderboardService: LeaderboardServiceProtocol = DIContainer.shared.leaderboardService,
-        gameSettings: GameSettingsProtocol = DIContainer.shared.gameSettings
+        gameSettings: GameSettingsProtocol = DIContainer.shared.gameSettings,
+        mySkin: PlayerSkin? = nil
     ) {
         self.store = store
         self.audioService = audioService
         self.leaderboardService = leaderboardService
         self.gameSettings = gameSettings
+        self.mySkin = mySkin ?? .blue
+
         bind()
     }
-    
+
     var showExplosionTrajectory: Bool {
         gameSettings.showExplosionTrajectory
     }
-    
+
+    // MARK: - Bind
+
     private func bind() {
         store.$playerID
+            .compactMap { $0 }
             .sink { [weak self] id in
                 self?.myID = id
             }
             .store(in: &cancellables)
-        
+
         store.$gameState
             .sink { [weak self] state in
                 guard let self, let state else { return }
 
-                if self.gameStatus == .gameOver {
-                    return
-                }
+                if self.gameStatus == .gameOver { return }
 
                 if state.state == .waiting && self.gameStatus != .waiting {
                     self.playerDirections.removeAll()
@@ -72,17 +84,18 @@ final class GameViewModel: ObservableObject {
                     self.previousExplosions.removeAll()
                     self.lastWinner = nil
                 }
-                
+
                 self.updatePlayerDirections(newPlayers: state.players)
                 self.detectNewExplosions(newExplosions: state.explosions)
-                
-                if state.state == .gameOver, let winner = state.winner, winner != "НИЧЬЯ" {
-                    if self.lastWinner != winner {
-                        self.lastWinner = winner
-                        leaderboardService.recordWin(for: winner)
-                    }
+
+                if state.state == .gameOver,
+                   let winner = state.winner,
+                   winner != "НИЧЬЯ",
+                   self.lastWinner != winner {
+                    self.lastWinner = winner
+                    self.leaderboardService.recordWin(for: winner)
                 }
-                
+
                 self.gameState = state
                 self.gameStatus = state.state
                 self.winner = state.winner
@@ -94,74 +107,93 @@ final class GameViewModel: ObservableObject {
             }
             .store(in: &cancellables)
     }
-    
+
+    // MARK: - Skins -> Sprites
+
+    func skin(for playerID: String) -> PlayerSkin {
+        if playerID == myID {
+            return mySkin
+        }
+        
+        return .blue
+    }
+
+    func animationFrames(for playerID: String) -> [String] {
+        let skin = skin(for: playerID)
+        let dir = direction(for: playerID)
+
+        return dir.animationSuffixes.map {
+            "\(skin.spritePrefix)\($0)"
+        }
+    }
+
+    func spriteName(for playerID: String) -> String {
+        let dir = direction(for: playerID)
+        let skin = skin(for: playerID)
+
+        return "\(skin.spritePrefix)\(dir.spriteSuffix)"
+    }
+
+    // MARK: - Explosions
+
     private func detectNewExplosions(newExplosions: [Explosion]) {
         let currentExplosionKeys = Set(newExplosions.map { "\($0.x),\($0.y)" })
         let newExplosionKeys = currentExplosionKeys.subtracting(previousExplosions)
-        
+
         if !newExplosionKeys.isEmpty {
             audioService.playExplosionSound()
         }
-        
+
         previousExplosions = currentExplosionKeys
     }
-    
-    
-    func moveUp() {
-        sendMove(dx: 0, dy: -1, direction: .up)
-    }
-    
-    func moveDown() {
-        sendMove(dx: 0, dy: 1, direction: .down)
-    }
-    
-    func moveLeft() {
-        sendMove(dx: -1, dy: 0, direction: .left)
-    }
-    
-    func moveRight() {
-        sendMove(dx: 1, dy: 0, direction: .right)
-    }
-    
+
+    // MARK: - Moves
+
+    func moveUp() { sendMove(dx: 0, dy: -1, direction: .up) }
+    func moveDown() { sendMove(dx: 0, dy: 1, direction: .down) }
+    func moveLeft() { sendMove(dx: -1, dy: 0, direction: .left) }
+    func moveRight() { sendMove(dx: 1, dy: 0, direction: .right) }
+
     func placeBomb() {
         send(PlaceBombMessage())
     }
-    
+
     private func sendMove(dx: Int, dy: Int, direction: PlayerDirection) {
         if let myID {
             playerDirections[myID] = direction
         }
         send(MoveMessage(dx: dx, dy: dy))
     }
-    
+
     func direction(for playerID: String) -> PlayerDirection {
         playerDirections[playerID] ?? .down
     }
-    
+
     private func updatePlayerDirections(newPlayers: [Player]) {
         for player in newPlayers {
             if let previous = previousPositions[player.id] {
                 let dx = player.x - previous.x
                 let dy = player.y - previous.y
-                
+
                 if dx != 0 || dy != 0 {
-                    let newDirection = directionFromDelta(dx: dx, dy: dy)
-                    playerDirections[player.id] = newDirection
+                    playerDirections[player.id] = directionFromDelta(dx: dx, dy: dy)
                 }
             }
-            
+
             previousPositions[player.id] = (x: player.x, y: player.y)
         }
     }
-    
+
     private func directionFromDelta(dx: Int, dy: Int) -> PlayerDirection {
         if dx > 0 { return .right }
         if dx < 0 { return .left }
         if dy > 0 { return .down }
         if dy < 0 { return .up }
-        return .down // Default
+        return .down
     }
-    
+
+    // MARK: - Send / Leave
+
     private func send<T: Encodable>(_ message: T) {
         guard let data = try? JSONEncoder().encode(message),
               let json = String(data: data, encoding: .utf8) else {
@@ -169,29 +201,22 @@ final class GameViewModel: ObservableObject {
         }
         store.send(json)
     }
-    
+
     func leaveGame() {
         store.disconnect()
     }
 
-    
+    // MARK: - Helpers
+
     var myPlayer: Player? {
         guard let myID else { return nil }
         return players.first { $0.id == myID }
     }
-    
-    var isAlive: Bool {
-        myPlayer?.alive ?? false
-    }
-    
-    var isGameOver: Bool {
-        gameStatus == .gameOver
-    }
-    
-    var isPlaying: Bool {
-        gameStatus == .inProgress
-    }
-    
+
+    var isAlive: Bool { myPlayer?.alive ?? false }
+    var isGameOver: Bool { gameStatus == .gameOver }
+    var isPlaying: Bool { gameStatus == .inProgress }
+
     var formattedTime: String {
         guard let time = timeRemaining else { return "--:--" }
         let totalSeconds = max(0, Int(time))

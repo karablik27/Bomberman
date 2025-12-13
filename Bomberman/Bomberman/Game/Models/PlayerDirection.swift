@@ -6,26 +6,23 @@
 //
 
 enum PlayerDirection: String {
-    case up
-    case down
-    case left
-    case right
-    
-    var spriteName: String {
+    case up, down, left, right
+
+    var spriteSuffix: String {
         switch self {
-        case .up: return "PlayerUp"
-        case .down: return "PlayerDown"
-        case .left: return "PlayerLeft"
-        case .right: return "PlayerRight"
+        case .up: return "Up"
+        case .down: return "Down"
+        case .left: return "Left"
+        case .right: return "Right"
         }
     }
-    
-    var animationFrames: [String] {
+
+    var animationSuffixes: [String] {
         switch self {
-        case .up: return ["PlayerUp", "PlayerUp2", "PlayerUp3"]
-        case .down: return ["PlayerDown", "PlayerDown2", "PlayerDown3"]
-        case .left: return ["PlayerLeft", "PlayerLeft2", "PlayerLeft3"]
-        case .right: return ["PlayerRight", "PlayerRight2", "PlayerRight3"]
+        case .up: return ["Up", "Up2", "Up3"]
+        case .down: return ["Down", "Down2", "Down3"]
+        case .left: return ["Left", "Left2", "Left3"]
+        case .right: return ["Right", "Right2", "Right3"]
         }
     }
 }

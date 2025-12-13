@@ -16,14 +16,27 @@ struct GameView: View {
     @State private var showDeathOverlay = false
     @GestureState private var panTranslation: CGSize = .zero
     
-    @StateObject private var vm = GameViewModel()
+    @StateObject private var vm: GameViewModel
     @Environment(\.dismiss) private var dismiss
+    
+    let mySkin: PlayerSkin
     
     private let audioService = DIContainer.shared.audioService
     
     var onLeaveToMainMenu: (() -> Void)?
     
     private let tileSize: CGFloat = 40
+    
+    init(
+            mySkin: PlayerSkin,
+            onLeaveToMainMenu: (() -> Void)? = nil
+        ) {
+            self.mySkin = mySkin
+            self.onLeaveToMainMenu = onLeaveToMainMenu
+            _vm = StateObject(
+                wrappedValue: GameViewModel(mySkin: mySkin)
+            )
+        }
     
     var body: some View {
         GeometryReader { geometry in
@@ -87,52 +100,41 @@ struct GameView: View {
         
         let currentScale = scale * magnifyBy
         
-        // Вычисляем размеры карты с учетом зума
         let scaledBoardWidth = boardWidth * currentScale
         let scaledBoardHeight = boardHeight * currentScale
         
-        // Проверяем, помещается ли карта на экран
         let fitsOnScreen = scaledBoardWidth <= viewportSize.width && scaledBoardHeight <= viewportSize.height
         
         var offsetX: CGFloat
         var offsetY: CGFloat
         
         if fitsOnScreen {
-            // Карта помещается - показываем всю карту, центрируем
             offsetX = (viewportSize.width - scaledBoardWidth) / 2
             offsetY = (viewportSize.height - scaledBoardHeight) / 2
             
-            // Сбрасываем панорамирование, если карта помещается
             if abs(panOffset.width) > 0.1 || abs(panOffset.height) > 0.1 {
                 DispatchQueue.main.async {
                     panOffset = .zero
                 }
             }
         } else {
-            // Карта не помещается - используем панорамирование или центрирование на игроке
             let totalPanX = panOffset.width + panTranslation.width
             let totalPanY = panOffset.height + panTranslation.height
             
-            // Вычисляем границы для панорамирования
             let maxPanX = (scaledBoardWidth - viewportSize.width) / 2
             let maxPanY = (scaledBoardHeight - viewportSize.height) / 2
             
-            // Ограничиваем панорамирование границами
             let constrainedPanX = min(maxPanX, max(-maxPanX, totalPanX))
             let constrainedPanY = min(maxPanY, max(-maxPanY, totalPanY))
             
-            // Используем панорамирование, если оно есть
             if abs(constrainedPanX) > 0.1 || abs(constrainedPanY) > 0.1 ||
                abs(panOffset.width) > 0.1 || abs(panOffset.height) > 0.1 {
-                // Используем панорамирование
                 offsetX = constrainedPanX - (boardWidth * currentScale / 2) + (viewportSize.width / 2)
                 offsetY = constrainedPanY - (boardHeight * currentScale / 2) + (viewportSize.height / 2)
             } else {
-                // Если панорамирования нет, центрируем на игроке
                 offsetX = viewportSize.width / 2 - cameraX * currentScale
                 offsetY = viewportSize.height / 2 - cameraY * currentScale
                 
-                // Ограничиваем границами карты
                 if scaledBoardWidth > viewportSize.width {
                     let minOffsetX = viewportSize.width - scaledBoardWidth
                     let maxOffsetX: CGFloat = 0
@@ -165,7 +167,6 @@ struct GameView: View {
                             scale = min(max(scale * value, 0.5), 2.0)
                             lastScale = scale
                             
-                            // Сбрасываем панорамирование если карта теперь помещается
                             let newScaledWidth = boardWidth * scale
                             let newScaledHeight = boardHeight * scale
                             if newScaledWidth <= viewportSize.width && newScaledHeight <= viewportSize.height {
@@ -176,7 +177,6 @@ struct GameView: View {
                 .simultaneousGesture(
                     DragGesture(minimumDistance: 5)
                         .updating($panTranslation) { value, state, _ in
-                            // Панорамирование работает только если карта не помещается
                             let scaledBoardWidth = boardWidth * (scale * magnifyBy)
                             let scaledBoardHeight = boardHeight * (scale * magnifyBy)
                             if scaledBoardWidth > viewportSize.width || scaledBoardHeight > viewportSize.height {
@@ -187,12 +187,10 @@ struct GameView: View {
                             let scaledBoardWidth = boardWidth * scale
                             let scaledBoardHeight = boardHeight * scale
                             
-                            // Панорамирование работает только если карта не помещается
                             if scaledBoardWidth > viewportSize.width || scaledBoardHeight > viewportSize.height {
                                 panOffset.width += value.translation.width
                                 panOffset.height += value.translation.height
                                 
-                                // Ограничиваем границы
                                 let maxPanX = (scaledBoardWidth - viewportSize.width) / 2
                                 let maxPanY = (scaledBoardHeight - viewportSize.height) / 2
                                 
@@ -353,9 +351,10 @@ struct GameView: View {
                 AnimatedPlayerView(
                     player: player,
                     isMe: player.id == vm.myID,
-                    direction: vm.direction(for: player.id),
-                    tileSize: tileSize
+                    tileSize: tileSize,
+                    spriteProvider: vm
                 )
+                .id(player.id + (vm.myID ?? ""))
             }
         }
         .frame(width: boardWidth, height: boardHeight)
@@ -552,161 +551,8 @@ struct GameView: View {
     }
 }
 
-struct AnimatedPlayerView: View {
-    let player: Player
-    let isMe: Bool
-    let direction: PlayerDirection
-    let tileSize: CGFloat
-    
-    @State private var previousX: Int = 0
-    @State private var previousY: Int = 0
-    @State private var isMoving: Bool = false
-    @State private var animationFrame: Int = 0
-    @State private var animationTimer: Timer?
-    
-    var body: some View {
-        PlayerSpriteView(
-            isMe: isMe,
-            name: player.name,
-            direction: direction,
-            animationFrame: animationFrame
-        )
-        .frame(width: tileSize, height: tileSize)
-        .offset(
-            x: CGFloat(player.x) * tileSize,
-            y: CGFloat(player.y) * tileSize
-        )
-        .animation(.easeOut(duration: 0.15), value: player.x)
-        .animation(.easeOut(duration: 0.15), value: player.y)
-        .onChange(of: player.x) { newX in
-            startWalkingAnimation()
-            previousX = newX
-        }
-        .onChange(of: player.y) { newY in
-            startWalkingAnimation()
-            previousY = newY
-        }
-        .onAppear {
-            previousX = player.x
-            previousY = player.y
-        }
-        .onDisappear {
-            stopWalkingAnimation()
-        }
-    }
-    
-    private func startWalkingAnimation() {
-        stopWalkingAnimation()
-        
-        isMoving = true
-        animationFrame = 0
-        
-        var frameIndex = 0
-        let frameSequence = [0, 1, 2, 1]
-        
-        animationTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
-            frameIndex = (frameIndex + 1) % frameSequence.count
-            animationFrame = frameSequence[frameIndex]
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            stopWalkingAnimation()
-        }
-    }
-    
-    private func stopWalkingAnimation() {
-        animationTimer?.invalidate()
-        animationTimer = nil
-        isMoving = false
-        animationFrame = 0
-    }
-}
-
-struct PlayerSpriteView: View {
-    let isMe: Bool
-    let name: String
-    let direction: PlayerDirection
-    let animationFrame: Int
-    
-    var body: some View {
-        VStack(spacing: 2) {
-            Text(name)
-                .font(.system(size: 10, weight: .bold))
-                .foregroundColor(.white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
-            
-            Image(currentSpriteName)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .overlay(
-                    isMe ? RoundedRectangle(cornerRadius: 4)
-                        .stroke(Color.blue, lineWidth: 2) : nil
-                )
-        }
-    }
-    
-    private var currentSpriteName: String {
-        let frames = direction.animationFrames
-        let safeIndex = min(animationFrame, frames.count - 1)
-        return frames[safeIndex]
-    }
-}
-
-struct PlayerView: View {
-    let isMe: Bool
-    let name: String
-    let direction: PlayerDirection
-    
-    var body: some View {
-        PlayerSpriteView(isMe: isMe, name: name, direction: direction, animationFrame: 0)
-    }
-}
-
-struct BombView: View {
-    @State private var scale: CGFloat = 1.0
-    
-    var body: some View {
-        Image("BombActive")
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .scaleEffect(scale)
-            .onAppear {
-                withAnimation(
-                    Animation.easeInOut(duration: 0.3)
-                        .repeatForever(autoreverses: true)
-                ) {
-                    scale = 1.15
-                }
-            }
-    }
-}
-
-struct ExplosionView: View {
-    @State private var opacity: Double = 1.0
-    
-    var body: some View {
-        Image("Fireball")
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .opacity(opacity)
-            .onAppear {
-                withAnimation(
-                    Animation.easeOut(duration: 0.5)
-                        .repeatForever(autoreverses: true)
-                ) {
-                    opacity = 0.6
-                }
-            }
-    }
-}
-
 extension Array {
     subscript(safe index: Int) -> Element? {
         indices.contains(index) ? self[index] : nil
     }
-}
-
-#Preview {
-    GameView()
 }

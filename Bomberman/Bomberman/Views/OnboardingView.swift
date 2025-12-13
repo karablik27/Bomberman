@@ -36,7 +36,6 @@ struct OnboardingView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Индикатор страниц
                 HStack(spacing: 8) {
                     ForEach(0..<onboardingPages.count, id: \.self) { index in
                         Circle()
@@ -47,7 +46,6 @@ struct OnboardingView: View {
                 .padding(.top, 40)
                 .padding(.bottom, 20)
                 
-                // Карточка с контентом
                 TabView(selection: $currentPage) {
                     ForEach(0..<onboardingPages.count, id: \.self) { index in
                         OnboardingPageView(page: onboardingPages[index])
@@ -57,7 +55,6 @@ struct OnboardingView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .frame(height: 500)
                 
-                // Кнопки навигации
                 HStack(spacing: 20) {
                     if currentPage > 0 {
                         Button {
