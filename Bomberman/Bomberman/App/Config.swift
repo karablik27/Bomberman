@@ -11,6 +11,10 @@ enum AppConfig {
     static let webSocketURLString = "ws://89.169.176.217:8765"
 
     static var webSocketURL: URL {
-        URL(string: webSocketURLString)! 
+        guard let url = URL(string: webSocketURLString) else {
+            preconditionFailure("Invalid WebSocket URL: \(webSocketURLString)")
+        }
+        return url
     }
 }
+
