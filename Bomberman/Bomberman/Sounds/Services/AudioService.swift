@@ -194,7 +194,6 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
     
     func resumeMusic() {
         if audioPlayer == nil {
-            // Если плеер не создан, запускаем музыку лобби по умолчанию
             playLobbyMusic()
         } else {
             audioPlayer?.play()
@@ -202,7 +201,6 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
     }
     
     func setCustomMusic(url: URL) throws {
-        // Получаем доступ к security-scoped resource
         guard url.startAccessingSecurityScopedResource() else {
             throw NSError(domain: "AudioService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Не удалось получить доступ к файлу"])
         }
@@ -222,13 +220,11 @@ final class AudioService: AudioServiceProtocol, ObservableObject {
             try? FileManager.default.removeItem(at: oldURL)
         }
         
-        // Копируем новый файл
         try FileManager.default.copyItem(at: url, to: destinationURL)
         
         let bookmarkData = try url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
         customMusicBookmarkData = bookmarkData
         
-        // Сохраняем состояние
         isUsingCustomMusic = true
         customMusicFileName = fileName
         UserDefaults.standard.set(true, forKey: "isUsingCustomMusic")

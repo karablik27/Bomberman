@@ -68,7 +68,7 @@ struct InformationView: View {
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 30)
                             
-                            // Правило 1 - Передвижение
+                       
                             VStack(spacing: 12) {
                                 Image("Rules1")
                                     .resizable()
@@ -84,7 +84,6 @@ struct InformationView: View {
                             }
                             .padding(.horizontal, 30)
                             
-                            // Правило 2 - Постановка бомбы
                             VStack(spacing: 12) {
                                 Image("Rules2")
                                     .resizable()
@@ -100,7 +99,6 @@ struct InformationView: View {
                             }
                             .padding(.horizontal, 30)
                             
-                            // Правило 3 - Подсветка траектории взрыва
                             VStack(spacing: 12) {
                                 Image("Rules3")
                                     .resizable()

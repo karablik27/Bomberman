@@ -62,7 +62,6 @@ final class MenuGameViewModel: ObservableObject {
         let nx = player.x + move.dx
         let ny = player.y + move.dy
 
-        // 🔥 Проверка через бесконечную карту
         let tile = MenuMapGenerator.tile(at: nx, y: ny)
         guard tile == .floor else { return }
 
@@ -109,7 +108,6 @@ final class MenuGameViewModel: ObservableObject {
     private func explode(at x: Int, _ y: Int) {
         explosions = [(x, y)]
 
-        // Только визуальный эффект — карту НЕ меняем
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
             self.explosions.removeAll()
             self.bombs.removeAll()

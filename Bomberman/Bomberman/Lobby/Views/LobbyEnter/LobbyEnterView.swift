@@ -13,6 +13,8 @@ struct LobbyEnterView: View {
     private let audioService = DIContainer.shared.audioService
 
     @State private var name: String = ""
+    @State private var selectedSkin: PlayerSkin = .blue
+    
     @FocusState private var isFocused: Bool
 
     var body: some View {
@@ -43,6 +45,41 @@ struct LobbyEnterView: View {
                     .focused($isFocused)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
+                
+                VStack(spacing: 10) {
+                    Text("CHOOSE PLAYER")
+                        .font(.kenneyFuture(size: 18))
+                        .foregroundColor(.white.opacity(0.85))
+
+                    HStack(spacing: 16) {
+                        ForEach(PlayerSkin.allCases) { skin in
+                            Button {
+                                audioService.playButtonSound()
+                                selectedSkin = skin
+                            } label: {
+                                Image(skin.iconName)
+                                    .resizable()
+                                    .frame(width: 44, height: 44)
+                                    .padding(6)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(
+                                                selectedSkin == skin
+                                                ? Color.green.opacity(0.35)
+                                                : Color.clear
+                                            )
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(
+                                                selectedSkin == skin ? Color.green : Color.white.opacity(0.3),
+                                                lineWidth: selectedSkin == skin ? 2 : 1
+                                            )
+                                    )
+                            }
+                        }
+                    }
+                }
 
                 ReadyButtonView2(
                     title: "JOIN LOBBY",
@@ -50,7 +87,10 @@ struct LobbyEnterView: View {
                     isEnabled: !name.trimmingCharacters(in: .whitespaces).isEmpty
                 ) {
                     audioService.playSignLobbySound()
-                    vm.connectAndJoin(with: name)
+                    vm.connectAndJoin(
+                        with: name,
+                        skin: selectedSkin
+                    )
                 }
             }
             .padding(20)

@@ -13,6 +13,10 @@ import SwiftUI
 final class LobbyViewModel: ObservableObject {
 
     @Published var players: [Player] = []
+    @Published var playerSkins: [String: PlayerSkin] = [:]
+    private var pendingSkin: PlayerSkin?
+    
+    @Published var selectedSkin: PlayerSkin = .blue
     @Published var myID: String?
     @Published var isReady: Bool = false
     @Published var gameStarted: Bool = false
@@ -31,12 +35,18 @@ final class LobbyViewModel: ObservableObject {
     private func bind() {
         store.$playerID
             .sink { [weak self] id in
-                self?.myID = id
-                if id == nil {
-                    self?.isReady = false
+                guard let self else { return }
+
+                self.myID = id
+                self.isReady = false
+
+                if let id, let skin = self.pendingSkin {
+                    self.playerSkins[id] = skin
+                    self.pendingSkin = nil
                 }
             }
             .store(in: &cancellables)
+
 
         store.$gameState
             .sink { [weak self] state in
@@ -82,9 +92,11 @@ final class LobbyViewModel: ObservableObject {
     }
 
     // MARK: - Actions
-
-    func connectAndJoin(with name: String) {
+    func connectAndJoin(with name: String, skin: PlayerSkin) {
         resetState()
+        
+        selectedSkin = skin
+        pendingSkin = skin
         store.connect()
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
@@ -96,11 +108,13 @@ final class LobbyViewModel: ObservableObject {
             }
             """
             self.store.send(joinJSON)
+
             withAnimation(.easeInOut(duration: 0.35)) {
                 self.didJoin = true
             }
         }
     }
+
     
     func sendChatMessage(_ text: String) {
         let escapedText = text

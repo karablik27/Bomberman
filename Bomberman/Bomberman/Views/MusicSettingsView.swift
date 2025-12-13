@@ -26,7 +26,6 @@ struct MusicSettingsView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Заголовок и кнопка закрытия
                 HStack {
                     Spacer()
                     Button(action: {
@@ -54,9 +53,7 @@ struct MusicSettingsView: View {
                     .padding(.top, 20)
                     .padding(.bottom, 40)
                 
-                // Контейнер с настройками
                 VStack(spacing: 25) {
-                    // Информация о текущей музыке
                     VStack(spacing: 12) {
                         Text("Текущая музыка:")
                             .font(.kenneyFuture(size: 20))
@@ -80,7 +77,6 @@ struct MusicSettingsView: View {
                     Divider()
                         .background(Color.black.opacity(0.3))
                     
-                    // Выбор музыки
                     VStack(spacing: 15) {
                         Button(action: {
                             audioService.playButtonSound()

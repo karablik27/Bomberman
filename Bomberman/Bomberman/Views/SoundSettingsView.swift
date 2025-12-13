@@ -48,11 +48,8 @@ struct SoundSettingsView: View {
                     .padding(.top, 20)
                     .padding(.bottom, 40)
                 
-                // Контейнер с настройками
                 VStack(spacing: 30) {
-                    // Переключатели Музыка и Эффекты
                     HStack(spacing: 30) {
-                        // Музыка
                         VStack(spacing: 12) {
                             Text("Музыка")
                                 .font(.kenneyFuture(size: 20))
@@ -73,7 +70,6 @@ struct SoundSettingsView: View {
                             }
                         }
                         
-                        // Эффекты
                         VStack(spacing: 12) {
                             Text("Эффекты")
                                 .font(.kenneyFuture(size: 20))
@@ -96,7 +92,6 @@ struct SoundSettingsView: View {
                     }
                     .padding(.horizontal, 30)
                     
-                    // Громкость музыки
                     VStack(spacing: 12) {
                         Text("Громкость музыки")
                             .font(.kenneyFuture(size: 20))
@@ -118,7 +113,6 @@ struct SoundSettingsView: View {
                     }
                     .padding(.horizontal, 30)
                     
-                    // Громкость эффектов
                     VStack(spacing: 12) {
                         Text("Громкость эффектов")
                             .font(.kenneyFuture(size: 20))

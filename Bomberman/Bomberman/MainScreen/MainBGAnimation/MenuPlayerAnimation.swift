@@ -8,9 +8,9 @@
 struct MenuPlayerAnimation {
 
     static let frames: [MenuDirection: [String]] = [
-        .down:  ["PlayerDown", "PlayerDown2", "PlayerDown3"],
-        .up:    ["PlayerUp", "PlayerUp2", "PlayerUp3"],
-        .left:  ["PlayerLeft", "PlayerLeft2", "PlayerLeft3"],
-        .right: ["PlayerRight", "PlayerRight2", "PlayerRight3"]
+        .down:  ["RedPlayerDown", "RedPlayerDown2", "RedPlayerDown3"],
+        .up:    ["RedPlayerUp", "RedPlayerUp2", "RedPlayerUp3"],
+        .left:  ["RedPlayerLeft", "RedPlayerLeft2", "RedPlayerLeft3"],
+        .right: ["RedPlayerRight", "RedPlayerRight2", "RedPlayerRight3"]
     ]
 }
